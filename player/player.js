@@ -54,8 +54,6 @@
     return cells;
   }
 
-  /* ── Ordered clue list (across first, then down, sorted by number) ────────── */
-
   function orderedClues(puzzle) {
     return [
       ...puzzle.across.map(w => ({ ...w, dir: 'across' })),
@@ -71,11 +69,9 @@
 
     let dir = state.sel ? state.sel.dir : 'across';
 
-    // Toggle direction on re-click if intersection
     if (state.sel && state.sel.r === r && state.sel.c === c) {
       if (info.across && info.down) dir = dir === 'across' ? 'down' : 'across';
     } else {
-      // Use current direction if available, else switch
       if (!info[dir]) dir = dir === 'across' ? 'down' : 'across';
     }
 
@@ -90,7 +86,6 @@
   function selectByClue(state, number, dir, scroll) {
     const clue = getClue(state.puzzle, number, dir);
     if (!clue) return;
-    // Start at first empty cell in the word, or start of word
     const cells = getWordCells(clue, dir);
     const target = cells.find(({ r, c }) => !state.userGrid[r][c]) || cells[0];
     state.sel = { r: target.r, c: target.c, dir, clueNumber: number };
@@ -244,8 +239,8 @@
   function renderClues(state) {
     if (!state.clueEls) return;
     for (const dir of ['across', 'down']) {
-      for (const [, el] of Object.entries(state.clueEls[dir])) {
-        el.classList.remove('cw-clue--active');
+      for (const [, e] of Object.entries(state.clueEls[dir])) {
+        e.classList.remove('cw-clue--active');
       }
     }
     if (!state.sel) return;
@@ -271,11 +266,11 @@
   }
 
   function scrollClue(state, number, dir) {
-    const el = state.clueEls?.[dir]?.[number];
-    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    const e = state.clueEls?.[dir]?.[number];
+    if (e) e.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   }
 
-  /* ── Check complete ──────────────────────────────────────────────────────── */
+  /* ── Check / verify ──────────────────────────────────────────────────────── */
 
   function checkComplete(state) {
     const { puzzle, userGrid } = state;
@@ -292,7 +287,7 @@
   function manualCheck(state) {
     state.checked = true;
     renderCells(state);
-    return checkComplete(state);
+    checkComplete(state);
   }
 
   /* ── Success overlay ─────────────────────────────────────────────────────── */
@@ -307,8 +302,53 @@
     card.append(h2, p, btn);
     overlay.appendChild(card);
     state.container.appendChild(overlay);
-    state.checkBtn.textContent = '✓ Risolto!';
-    state.checkBtn.classList.add('cw-btn--success');
+    // Update verify button state
+    if (state.verifyBtn) {
+      state.verifyBtn.textContent = '✓ Risolto!';
+      state.verifyBtn.classList.add('cw-btn-verify--success');
+    }
+  }
+
+  /* ── Embed download ──────────────────────────────────────────────────────── */
+
+  async function generateEmbed(puzzle) {
+    try {
+      const [css, js] = await Promise.all([
+        fetch('/player/player.css').then(r => r.text()),
+        fetch('/player/player.js').then(r => r.text()),
+      ]);
+
+      const html = [
+        '<!DOCTYPE html>',
+        '<html lang="it">',
+        '<head>',
+        '  <meta charset="UTF-8">',
+        '  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">',
+        '  <title>FDL Crossword</title>',
+        '  <style>' + css + '</style>',
+        '</head>',
+        '<body>',
+        '  <div id="cw"></div>',
+        '  <script>' + js + '<\/script>',
+        '  <script>',
+        '    window.__CROSSWORD__ = ' + JSON.stringify(puzzle) + ';',
+        '    FDLCrossword.init(document.getElementById(\'cw\'), window.__CROSSWORD__);',
+        '  <\/script>',
+        '</body>',
+        '</html>',
+      ].join('\n');
+
+      const blob = new Blob([html], { type: 'text/html' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'fdl-crossword.html';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(a.href);
+    } catch (err) {
+      console.error('Embed generation failed:', err);
+    }
   }
 
   /* ── DOM builders ────────────────────────────────────────────────────────── */
@@ -332,7 +372,6 @@
           div.appendChild(el('span', 'cw-letter'));
           state.cells[cellKey(r, c)] = div;
           div.addEventListener('click', () => selectCell(state, r, c));
-          // iOS: prevent double-tap zoom
           div.addEventListener('touchend', (e) => { e.preventDefault(); selectCell(state, r, c); });
         }
         grid.appendChild(div);
@@ -348,11 +387,19 @@
     bar.appendChild(el('span', 'cw-active-label'));
     bar.appendChild(el('span', 'cw-active-sep', ' — '));
     bar.appendChild(el('span', 'cw-active-clue'));
-    const hint = el('a', 'cw-active-hint', 'Suggerimento ↗');
+
+    // Verify button — lives in the active bar, before the hint link
+    const verifyBtn = el('button', 'cw-btn-verify', 'Verifica');
+    bar.appendChild(verifyBtn);
+    state.verifyBtn = verifyBtn;
+
+    // Article hint link
+    const hint = el('a', 'cw-active-hint', 'Leggi l\'articolo ↗');
     hint.target = '_blank';
     hint.rel = 'noopener noreferrer';
     hint.style.display = 'none';
     bar.appendChild(hint);
+
     state.activeBarEl = bar;
     return bar;
   }
@@ -373,7 +420,7 @@
         item.appendChild(el('span', 'cw-clue-text', w.clue));
 
         if (w.sourceUrl) {
-          const link = el('a', 'cw-clue-hint', '↗');
+          const link = el('a', 'cw-clue-hint', 'fonte');
           link.href = w.sourceUrl;
           link.target = '_blank';
           link.rel = 'noopener noreferrer';
@@ -406,14 +453,12 @@
   function setupEvents(state) {
     const input = state.hiddenInput;
 
-    // Letter input (works on both desktop and mobile virtual keyboard)
     input.addEventListener('input', () => {
       const val = input.value.replace(/[^a-zA-ZÀ-ú]/g, '').toUpperCase();
       input.value = '';
       if (val) inputLetter(state, val.slice(-1));
     });
 
-    // Navigation keys
     input.addEventListener('keydown', (e) => {
       if (e.key === 'Backspace') { e.preventDefault(); backspace(state); }
       else if (e.key.startsWith('Arrow')) { e.preventDefault(); navigateArrow(state, e.key); }
@@ -421,15 +466,12 @@
       else if (e.key === 'Escape') { input.blur(); }
     });
 
-    // Re-focus hidden input on container click (desktop)
     state.container.addEventListener('click', () => focusHidden(state));
   }
 
   /* ── Responsive cell sizing ──────────────────────────────────────────────── */
 
   function applyCellSize(container, cols) {
-    // On narrow screens (single-column layout), fit grid to container width
-    // On wide screens, cap at 44px
     const padding = window.innerWidth <= 900 ? 24 : 48;
     const available = container.clientWidth - padding;
     const size = Math.min(44, Math.max(26, Math.floor(available / cols)));
@@ -450,29 +492,35 @@
       cells: {},
       clueEls: null,
       activeBarEl: null,
+      verifyBtn: null,
       hiddenInput: null,
-      checkBtn: null,
       checked: false,
       container,
     };
 
-    // Header
+    // ── Header ──────────────────────────────────────────────────────────────
     const header = el('header', 'cw-header');
+
+    const back = el('a', 'cw-header-back', '← Admin');
+    back.href = '/';
+
     const logo = el('div', 'cw-header-logo');
     logo.innerHTML = 'FDL <span>Crossword</span>';
-    const actions = el('div', 'cw-header-actions');
-    const checkBtn = el('button', 'cw-btn cw-btn--check', 'Verifica');
-    actions.appendChild(checkBtn);
-    header.append(logo, actions);
-    state.checkBtn = checkBtn;
 
-    // Game area
+    const actions = el('div', 'cw-header-actions');
+    const downloadBtn = el('button', 'cw-btn cw-btn--ghost', 'Scarica embed');
+    downloadBtn.addEventListener('click', () => generateEmbed(puzzle));
+    actions.appendChild(downloadBtn);
+
+    header.append(back, logo, actions);
+
+    // ── Game area ────────────────────────────────────────────────────────────
     const game = el('div', 'cw-game');
     const gridCol = el('div', 'cw-grid-col');
     gridCol.append(buildGrid(state), buildActiveBar(state));
     game.append(gridCol, buildClues(state));
 
-    // Hidden input for mobile keyboard
+    // ── Hidden input for mobile keyboard ─────────────────────────────────────
     const hiddenInput = el('input', 'cw-hidden-input');
     hiddenInput.setAttribute('type', 'text');
     hiddenInput.setAttribute('autocomplete', 'off');
@@ -486,7 +534,8 @@
 
     setupEvents(state);
 
-    checkBtn.addEventListener('click', () => manualCheck(state));
+    // Wire verify button (built inside buildActiveBar)
+    state.verifyBtn.addEventListener('click', () => manualCheck(state));
 
     // Responsive cell sizing
     applyCellSize(container, puzzle.size.cols);

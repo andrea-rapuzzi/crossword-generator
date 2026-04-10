@@ -24,6 +24,7 @@ const wordsTable   = document.getElementById('words-table');
 const wordsBody    = document.getElementById('words-body');
 const wordCount    = document.getElementById('word-count');
 const btnClearWords = document.getElementById('btn-clear-words');
+const btnPreview    = document.getElementById('btn-preview');
 
 // ─── Log ─────────────────────────────────────────────────────────────────────
 
@@ -113,6 +114,7 @@ function renderWords() {
       <td><span class="word-answer">${w.answer}</span></td>
       <td class="word-clue">${w.clue}</td>
       <td class="word-hint">${w.hint || '—'}</td>
+      <td>${w.sourceUrl ? `<a href="${w.sourceUrl}" target="_blank" rel="noopener" class="word-source" title="${w.sourceUrl}">↗</a>` : '—'}</td>
       <td><button class="word-del" data-i="${i}" title="Rimuovi">×</button></td>
     `;
     wordsBody.appendChild(tr);
@@ -220,6 +222,7 @@ btnGenerate.addEventListener('click', () => {
 
       // Store and open player
       localStorage.setItem('fdl_puzzle', JSON.stringify(puzzle));
+      updatePreviewBtn();
       window.open('/player/', '_blank');
 
     } catch (err) {
@@ -231,7 +234,16 @@ btnGenerate.addEventListener('click', () => {
   }, 50);
 });
 
+// ─── Preview button ───────────────────────────────────────────────────────────
+
+function updatePreviewBtn() {
+  btnPreview.disabled = !localStorage.getItem('fdl_puzzle');
+}
+
+btnPreview.addEventListener('click', () => window.open('/player/', '_blank'));
+
 // ─── Init ─────────────────────────────────────────────────────────────────────
 
 renderUrls();
 renderWords();
+updatePreviewBtn();
