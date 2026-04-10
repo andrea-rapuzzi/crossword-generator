@@ -9,18 +9,17 @@ const state = {
 
 // ─── DOM refs ─────────────────────────────────────────────────────────────────
 
-const apiKeyInput  = document.getElementById('api-key');
-const langSelect   = document.getElementById('lang');
-const urlInput     = document.getElementById('url-input');
-const btnAddUrl    = document.getElementById('btn-add-url');
-const urlListEl    = document.getElementById('url-list');
-const btnScrape    = document.getElementById('btn-scrape');
-const btnGenerate  = document.getElementById('btn-generate');
-const logEl        = document.getElementById('log');
-const wordsEmpty   = document.getElementById('words-empty');
-const wordsTable   = document.getElementById('words-table');
-const wordsBody    = document.getElementById('words-body');
-const wordCount    = document.getElementById('word-count');
+const langSelect    = document.getElementById('lang');
+const urlInput      = document.getElementById('url-input');
+const btnAddUrl     = document.getElementById('btn-add-url');
+const urlListEl     = document.getElementById('url-list');
+const btnScrape     = document.getElementById('btn-scrape');
+const btnGenerate   = document.getElementById('btn-generate');
+const logEl         = document.getElementById('log');
+const wordsEmpty    = document.getElementById('words-empty');
+const wordsTable    = document.getElementById('words-table');
+const wordsBody     = document.getElementById('words-body');
+const wordCount     = document.getElementById('word-count');
 const btnClearWords = document.getElementById('btn-clear-words');
 const btnPreview    = document.getElementById('btn-preview');
 
@@ -70,7 +69,7 @@ function renderUrls() {
     urlListEl.appendChild(item);
   });
 
-  btnScrape.disabled = !apiKeyInput.value.trim();
+  btnScrape.disabled = false;
 }
 
 function addUrl() {
@@ -87,19 +86,16 @@ function addUrl() {
 
 btnAddUrl.addEventListener('click', addUrl);
 urlInput.addEventListener('keydown', e => { if (e.key === 'Enter') addUrl(); });
-apiKeyInput.addEventListener('input', () => {
-  btnScrape.disabled = state.urls.length === 0 || !apiKeyInput.value.trim();
-});
 
 // ─── Words table ──────────────────────────────────────────────────────────────
 
 function renderWords() {
   const empty = state.words.length === 0;
-  wordsEmpty.style.display  = empty ? '' : 'none';
-  wordsTable.style.display  = empty ? 'none' : '';
-  wordCount.style.display   = empty ? 'none' : '';
+  wordsEmpty.style.display    = empty ? '' : 'none';
+  wordsTable.style.display    = empty ? 'none' : '';
+  wordCount.style.display     = empty ? 'none' : '';
   btnClearWords.style.display = empty ? 'none' : '';
-  btnGenerate.disabled      = empty;
+  btnGenerate.disabled        = empty;
 
   if (empty) return;
 
@@ -134,10 +130,8 @@ btnClearWords.addEventListener('click', () => {
 // ─── Scrape & Extract ─────────────────────────────────────────────────────────
 
 btnScrape.addEventListener('click', async () => {
-  const apiKey = apiKeyInput.value.trim();
-  const lang   = langSelect.value;
+  const lang = langSelect.value;
 
-  if (!apiKey) { log('Inserisci la Claude API Key.', 'error'); return; }
   if (state.urls.length === 0) { log('Aggiungi almeno un URL.', 'error'); return; }
 
   btnScrape.disabled = true;
@@ -162,11 +156,11 @@ btnScrape.addEventListener('click', async () => {
       const { text } = await scrapeRes.json();
       log(`Testo estratto (${text.length} char). Invio a Claude…`);
 
-      // 2. Extract
+      // 2. Extract — API key is managed server-side via .env
       const extractRes = await fetch('/api/extract', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text, sourceUrl: entry.url, lang, apiKey }),
+        body: JSON.stringify({ text, sourceUrl: entry.url, lang }),
       });
 
       if (!extractRes.ok) throw new Error((await extractRes.json()).error);
@@ -190,7 +184,7 @@ btnScrape.addEventListener('click', async () => {
   }
 
   btnScrape.innerHTML = 'Scrape &amp; Estrai parole';
-  btnScrape.disabled  = false;
+  btnScrape.disabled  = state.urls.length === 0;
 });
 
 // ─── Generate ─────────────────────────────────────────────────────────────────
@@ -201,10 +195,8 @@ btnGenerate.addEventListener('click', () => {
   btnGenerate.disabled = true;
   btnGenerate.innerHTML = '<span class="spinner"></span> Generazione…';
 
-  // Slight delay so spinner renders before synchronous engine work
   setTimeout(() => {
     try {
-      // Take up to 15 words (engine will place ~10 with good intersections)
       const input = state.words.slice(0, 15);
       log(`Avvio engine con ${input.length} parole…`);
 
@@ -218,7 +210,6 @@ btnGenerate.addEventListener('click', () => {
 
       log(`Griglia ${puzzle.size.cols}×${puzzle.size.rows} — ${placed} parole collocate, ${puzzle.unused.length} non usate.`, 'ok');
 
-      // Store and open player
       localStorage.setItem('fdl_puzzle', JSON.stringify(puzzle));
       updatePreviewBtn();
       window.open('/player/', '_blank');

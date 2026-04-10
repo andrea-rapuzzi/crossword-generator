@@ -2,16 +2,21 @@ import type { APIRoute } from 'astro';
 import { extractWords } from '../../lib/extractor.js';
 
 export const POST: APIRoute = async ({ request }) => {
-  let body: { text: string; sourceUrl: string; lang: string; apiKey: string };
+  const apiKey = import.meta.env.ANTHROPIC_API_KEY;
+  if (!apiKey) {
+    return new Response(JSON.stringify({ error: 'API key non configurata sul server' }), { status: 500 });
+  }
+
+  let body: { text: string; sourceUrl: string; lang: string };
   try {
     body = await request.json();
   } catch {
     return new Response(JSON.stringify({ error: 'JSON non valido' }), { status: 400 });
   }
 
-  const { text, sourceUrl, lang, apiKey } = body;
+  const { text, sourceUrl, lang } = body;
 
-  if (!text || !apiKey) {
+  if (!text) {
     return new Response(JSON.stringify({ error: 'Parametri mancanti' }), { status: 400 });
   }
 
