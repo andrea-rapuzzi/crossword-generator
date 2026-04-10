@@ -1,0 +1,16 @@
+{
+  "name": "fdl-crossword-generator",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "start": "node ./dist/server/entry.mjs"
+  },
+  "dependencies": {
+    "@astrojs/node": "^10.0.4",
+    "astro": "^5.6.1",
+    "cheerio": "^1.0.0"
+  }
+}

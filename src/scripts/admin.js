@@ -1,6 +1,4 @@
-import { generateCrossword } from '../generator/crossword-engine.js';
-
-const API = 'http://localhost:3001';
+import { generateCrossword } from './crossword-engine.js';
 
 // ─── State ───────────────────────────────────────────────────────────────────
 
@@ -24,6 +22,7 @@ const wordsTable   = document.getElementById('words-table');
 const wordsBody    = document.getElementById('words-body');
 const wordCount    = document.getElementById('word-count');
 const btnClearWords = document.getElementById('btn-clear-words');
+const btnPreview    = document.getElementById('btn-preview');
 
 // ─── Log ─────────────────────────────────────────────────────────────────────
 
@@ -113,6 +112,7 @@ function renderWords() {
       <td><span class="word-answer">${w.answer}</span></td>
       <td class="word-clue">${w.clue}</td>
       <td class="word-hint">${w.hint || '—'}</td>
+      <td>${w.sourceUrl ? `<a href="${w.sourceUrl}" target="_blank" rel="noopener" class="word-source" title="${w.sourceUrl}">↗</a>` : '—'}</td>
       <td><button class="word-del" data-i="${i}" title="Rimuovi">×</button></td>
     `;
     wordsBody.appendChild(tr);
@@ -152,7 +152,7 @@ btnScrape.addEventListener('click', async () => {
 
     try {
       // 1. Scrape
-      const scrapeRes = await fetch(`${API}/scrape`, {
+      const scrapeRes = await fetch('/api/scrape', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ url: entry.url }),
@@ -163,7 +163,7 @@ btnScrape.addEventListener('click', async () => {
       log(`Testo estratto (${text.length} char). Invio a Claude…`);
 
       // 2. Extract
-      const extractRes = await fetch(`${API}/extract`, {
+      const extractRes = await fetch('/api/extract', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ text, sourceUrl: entry.url, lang, apiKey }),
@@ -220,6 +220,7 @@ btnGenerate.addEventListener('click', () => {
 
       // Store and open player
       localStorage.setItem('fdl_puzzle', JSON.stringify(puzzle));
+      updatePreviewBtn();
       window.open('/player/', '_blank');
 
     } catch (err) {
@@ -231,7 +232,16 @@ btnGenerate.addEventListener('click', () => {
   }, 50);
 });
 
+// ─── Preview button ───────────────────────────────────────────────────────────
+
+function updatePreviewBtn() {
+  btnPreview.disabled = !localStorage.getItem('fdl_puzzle');
+}
+
+btnPreview.addEventListener('click', () => window.open('/player/', '_blank'));
+
 // ─── Init ─────────────────────────────────────────────────────────────────────
 
 renderUrls();
 renderWords();
+updatePreviewBtn();

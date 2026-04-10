@@ -58,7 +58,17 @@
 
 .cw-header-logo span { color: var(--cw-cyan); }
 
-.cw-header-actions { margin-left: auto; display: flex; gap: 8px; }
+.cw-header-back {
+  color: rgba(255,255,255,.6);
+  text-decoration: none;
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+  transition: color 120ms ease;
+}
+.cw-header-back:hover { color: var(--white); }
+
+.cw-header-actions { margin-left: auto; display: flex; gap: 8px; align-items: center; }
 
 /* ── Buttons ───────────────────────────────────────────────────────────────── */
 .cw-btn {
@@ -72,19 +82,15 @@
   font-size: 13px;
   font-weight: 500;
   cursor: pointer;
-  transition: background 140ms ease;
+  transition: background 140ms ease, color 140ms ease;
 }
 
-.cw-btn--check {
-  background: var(--cw-bg-light);
-  color: var(--cw-primary);
+.cw-btn--ghost {
+  background: transparent;
+  color: rgba(255,255,255,.8);
+  border: 1px solid rgba(255,255,255,.3);
 }
-.cw-btn--check:hover { background: var(--cw-border); }
-
-.cw-btn--success {
-  background: var(--cw-sage);
-  color: var(--cw-blue-hover);
-}
+.cw-btn--ghost:hover { background: rgba(255,255,255,.1); color: var(--white); }
 
 /* ── Game layout ───────────────────────────────────────────────────────────── */
 .cw-game {
@@ -136,6 +142,7 @@
   width:  var(--cell);
   height: var(--cell);
   border: 1px solid var(--cw-border);
+  border-radius: 3px;
   position: relative;
   display: flex;
   align-items: center;
@@ -173,7 +180,7 @@
 
 /* ── Cell letter ───────────────────────────────────────────────────────────── */
 .cw-letter {
-  font-family: var(--font-sans);
+  font-family: var(--font-serif);
   font-size: calc(var(--cell) * 0.52);
   font-weight: 700;
   text-transform: uppercase;
@@ -190,10 +197,10 @@
   border-radius: 8px;
   font-size: 13px;
   display: flex;
-  align-items: baseline;
+  align-items: center;
   flex-wrap: wrap;
-  gap: 4px;
-  min-height: 40px;
+  gap: 6px;
+  min-height: 44px;
 }
 
 .cw-active-label {
@@ -209,16 +216,35 @@
   min-width: 0;
 }
 
+/* ── Verify button (inside active bar) ─────────────────────────────────────── */
+.cw-btn-verify {
+  flex-shrink: 0;
+  background: transparent;
+  color: rgba(255,255,255,.75);
+  border: 1px solid rgba(255,255,255,.25);
+  border-radius: 5px;
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 10px;
+  cursor: pointer;
+  transition: background 120ms ease, color 120ms ease, border-color 120ms ease;
+  white-space: nowrap;
+}
+.cw-btn-verify:hover { background: rgba(255,255,255,.1); color: var(--white); border-color: rgba(255,255,255,.5); }
+.cw-btn-verify--success { background: var(--cw-sage); color: var(--cw-blue-hover); border-color: var(--cw-sage); }
+
 .cw-active-hint {
   color: var(--cw-cyan);
   text-decoration: none;
   white-space: nowrap;
   font-weight: 500;
   font-size: 12px;
-  padding: 2px 6px;
+  padding: 3px 8px;
   border: 1px solid rgba(98,198,233,.4);
-  border-radius: 4px;
+  border-radius: 5px;
   transition: background 120ms ease;
+  flex-shrink: 0;
 }
 
 .cw-active-hint:hover { background: rgba(98,198,233,.15); }
@@ -256,9 +282,13 @@
   display: flex;
   flex-direction: column;
   gap: 2px;
-  max-height: 420px;
+  max-height: 480px;
   overflow-y: auto;
   scrollbar-width: thin;
+}
+
+@media (max-width: 900px) {
+  .cw-clues-list { max-height: none; }
 }
 
 /* ── Clue item ─────────────────────────────────────────────────────────────── */
@@ -293,14 +323,20 @@
 .cw-clue-hint {
   color: var(--cw-blue);
   text-decoration: none;
-  font-size: 12px;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .4px;
   flex-shrink: 0;
-  opacity: .6;
-  transition: opacity 120ms ease;
-  padding: 0 2px;
+  padding: 2px 6px;
+  border: 1px solid var(--cw-bg-light);
+  border-radius: 20px;
+  background: var(--cw-bg);
+  transition: background 120ms ease, border-color 120ms ease;
+  align-self: center;
 }
 
-.cw-clue-hint:hover { opacity: 1; }
+.cw-clue-hint:hover { background: var(--cw-cyan-light); border-color: var(--cw-cyan); }
 
 /* ── Hidden input (mobile keyboard trigger) ────────────────────────────────── */
 .cw-hidden-input {

@@ -47,6 +47,14 @@ body {
   opacity: .7;
 }
 
+.btn--ghost {
+  background: transparent;
+  color: var(--white);
+  border: 1px solid rgba(255,255,255,.3);
+}
+.btn--ghost:not(:disabled):hover { background: rgba(255,255,255,.1); border-color: rgba(255,255,255,.6); }
+.btn--ghost:disabled { opacity: .3; cursor: not-allowed; }
+
 /* ─── Layout ─────────────────────────────────────────────────────────────── */
 
 .main {
@@ -326,6 +334,15 @@ body {
 
 .word-clue { color: var(--neutral-700); }
 .word-hint { color: var(--color-gray-mid); font-size: 12px; }
+
+.word-source {
+  color: var(--color-blue);
+  font-size: 13px;
+  text-decoration: none;
+  opacity: .7;
+  transition: opacity var(--transition);
+}
+.word-source:hover { opacity: 1; }
 
 .word-del {
   background: none;
