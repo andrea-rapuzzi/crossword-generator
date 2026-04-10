@@ -372,13 +372,13 @@
           div.appendChild(el('span', 'cw-letter'));
           state.cells[cellKey(r, c)] = div;
           div.addEventListener('click', () => selectCell(state, r, c));
-          div.addEventListener('touchend', (e) => { e.preventDefault(); selectCell(state, r, c); });
         }
         grid.appendChild(div);
       });
     });
 
     scroll.appendChild(grid);
+    setupGridZoom(scroll, grid);
     return scroll;
   }
 
@@ -469,12 +469,72 @@
     state.container.addEventListener('click', () => focusHidden(state));
   }
 
+  /* ── Pinch-to-zoom + pan ─────────────────────────────────────────────────── */
+
+  function setupGridZoom(scrollEl, gridEl) {
+    var scale = 1, tx = 0, ty = 0;
+    var t0 = [], initScale = 1, initTx = 0, initTy = 0;
+    var initDist = 0, initMidX = 0, initMidY = 0;
+    var moved = false;
+    var MIN = 0.5, MAX = 4;
+
+    function apply() {
+      gridEl.style.transform = 'translate(' + tx + 'px,' + ty + 'px) scale(' + scale + ')';
+    }
+
+    function ptDist(a, b) {
+      return Math.hypot(b.clientX - a.clientX, b.clientY - a.clientY);
+    }
+
+    scrollEl.addEventListener('touchstart', function (e) {
+      t0 = Array.from(e.touches);
+      initScale = scale; initTx = tx; initTy = ty; moved = false;
+      if (t0.length === 2) {
+        initDist = ptDist(t0[0], t0[1]);
+        var rect = scrollEl.getBoundingClientRect();
+        initMidX = (t0[0].clientX + t0[1].clientX) / 2 - rect.left;
+        initMidY = (t0[0].clientY + t0[1].clientY) / 2 - rect.top;
+      }
+    }, { passive: true });
+
+    scrollEl.addEventListener('touchmove', function (e) {
+      e.preventDefault();
+      var ts = Array.from(e.touches);
+      if (ts.length === 1 && t0.length === 1) {
+        var dx = ts[0].clientX - t0[0].clientX;
+        var dy = ts[0].clientY - t0[0].clientY;
+        if (Math.abs(dx) > 4 || Math.abs(dy) > 4) moved = true;
+        tx = initTx + dx;
+        ty = initTy + dy;
+      } else if (ts.length >= 2 && t0.length >= 2) {
+        moved = true;
+        var d = ptDist(ts[0], ts[1]);
+        var s = Math.max(MIN, Math.min(MAX, initScale * (d / initDist)));
+        var ratio = s / initScale;
+        tx = initMidX - ratio * (initMidX - initTx);
+        ty = initMidY - ratio * (initMidY - initTy);
+        scale = s;
+      }
+      apply();
+    }, { passive: false });
+
+    scrollEl.addEventListener('touchend', function () { t0 = []; });
+
+    /* Suppress cell click if touch turned into a pan/pinch */
+    scrollEl.addEventListener('click', function (e) {
+      if (moved) { moved = false; e.stopPropagation(); }
+    }, true);
+  }
+
   /* ── Responsive cell sizing ──────────────────────────────────────────────── */
 
-  function applyCellSize(container, cols) {
-    const padding = window.innerWidth <= 900 ? 24 : 48;
-    const available = container.clientWidth - padding;
-    const size = Math.min(44, Math.max(26, Math.floor(available / cols)));
+  function applyCellSize(container, cols, rows) {
+    var scrollEl = container.querySelector('.cw-grid-scroll');
+    var w = scrollEl ? scrollEl.clientWidth  : container.clientWidth;
+    var h = scrollEl ? scrollEl.clientHeight : Math.round(window.innerHeight * 0.75);
+    var byW  = Math.floor(w / cols);
+    var byH  = Math.floor(h / rows);
+    var size = Math.max(10, Math.min(44, byW, byH));
     container.style.setProperty('--cell', size + 'px');
   }
 
@@ -538,8 +598,8 @@
     state.verifyBtn.addEventListener('click', () => manualCheck(state));
 
     // Responsive cell sizing
-    applyCellSize(container, puzzle.size.cols);
-    const ro = new ResizeObserver(() => applyCellSize(container, puzzle.size.cols));
+    applyCellSize(container, puzzle.size.cols, puzzle.size.rows);
+    const ro = new ResizeObserver(() => applyCellSize(container, puzzle.size.cols, puzzle.size.rows));
     ro.observe(container);
 
     // Select first clue
