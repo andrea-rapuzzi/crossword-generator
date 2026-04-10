@@ -1,6 +1,4 @@
-import { generateCrossword } from '../generator/crossword-engine.js';
-
-const API = 'http://localhost:3001';
+import { generateCrossword } from './crossword-engine.js';
 
 // ─── State ───────────────────────────────────────────────────────────────────
 
@@ -154,7 +152,7 @@ btnScrape.addEventListener('click', async () => {
 
     try {
       // 1. Scrape
-      const scrapeRes = await fetch(`${API}/scrape`, {
+      const scrapeRes = await fetch('/api/scrape', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ url: entry.url }),
@@ -165,7 +163,7 @@ btnScrape.addEventListener('click', async () => {
       log(`Testo estratto (${text.length} char). Invio a Claude…`);
 
       // 2. Extract
-      const extractRes = await fetch(`${API}/extract`, {
+      const extractRes = await fetch('/api/extract', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ text, sourceUrl: entry.url, lang, apiKey }),

@@ -1,15 +1,18 @@
+---
+export const prerender = false;
+---
 <!DOCTYPE html>
 <html lang="it">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
   <title>FDL Crossword</title>
-  <link rel="stylesheet" href="./player.css" />
+  <link rel="stylesheet" href="/player/player.css" />
 </head>
 <body>
   <div id="cw-root"></div>
 
-  <script src="./player.js"></script>
+  <script src="/player/player.js" is:inline></script>
   <script>
     // Data priority: URL param → localStorage → window.__CROSSWORD__
     let data = null;
