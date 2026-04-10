@@ -20,7 +20,7 @@ export const prerender = false;
   <!-- Header -->
   <header class="header">
     <div class="header__logo">FDL <span>Crossword</span></div>
-    <span class="header__subtitle">Admin — Generatore Cruciverba</span>
+
     <button id="btn-preview" class="btn btn--ghost btn--sm" disabled>Anteprima ↗</button>
   </header>
 
@@ -77,11 +77,19 @@ export const prerender = false;
         </button>
       </section>
 
-      <!-- Log -->
+      <!-- Status + Log -->
       <section>
-        <p class="section-title">Log</p>
-        <div id="log" class="log">
-          <span class="log__line">Pronto.</span>
+        <div class="status-panel">
+          <div class="status-row">
+            <span id="status-icon" class="status-icon"></span>
+            <span id="status-label" class="status-label">Pronto</span>
+          </div>
+          <div class="progress-track">
+            <div id="progress-fill" class="progress-fill"></div>
+          </div>
+          <div id="log" class="log">
+            <span class="log__line">Pronto.</span>
+          </div>
         </div>
       </section>
 

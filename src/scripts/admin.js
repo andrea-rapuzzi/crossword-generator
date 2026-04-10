@@ -22,6 +22,45 @@ const wordsBody     = document.getElementById('words-body');
 const wordCount     = document.getElementById('word-count');
 const btnClearWords = document.getElementById('btn-clear-words');
 const btnPreview    = document.getElementById('btn-preview');
+const statusIcon    = document.getElementById('status-icon');
+const statusLabel   = document.getElementById('status-label');
+const progressFill  = document.getElementById('progress-fill');
+
+// ─── Status panel ─────────────────────────────────────────────────────────────
+
+const STAGES = {
+  idle:       { label: 'Pronto',               state: 'idle'    },
+  scraping:   { label: 'Scraping in corso…',    state: 'active'  },
+  analyzing:  { label: 'Analisi del testo…',    state: 'active'  },
+  extracting: { label: 'Estrazione parole…',    state: 'active'  },
+  generating: { label: 'Generazione griglia…',  state: 'active'  },
+  done:       { label: 'Completato!',           state: 'success' },
+  error:      { label: 'Si è verificato un errore', state: 'error' },
+};
+
+let _resetTimer = null;
+
+function setStatus(stage, progress = null) {
+  const cfg = STAGES[stage] || STAGES.idle;
+
+  statusLabel.textContent = cfg.label;
+  statusLabel.className   = `status-label${cfg.state !== 'idle' ? ` status-label--${cfg.state}` : ''}`;
+  statusIcon.className    = `status-icon${cfg.state !== 'idle' ? ` status-icon--${cfg.state}` : ''}`;
+
+  if (progress !== null) {
+    progressFill.style.width = `${progress}%`;
+    progressFill.className   = `progress-fill${
+      cfg.state === 'success' ? ' progress-fill--success' :
+      cfg.state === 'error'   ? ' progress-fill--error'   : ''
+    }`;
+  }
+
+  // Auto-reset to idle after terminal states
+  clearTimeout(_resetTimer);
+  if (stage === 'done' || stage === 'error') {
+    _resetTimer = setTimeout(() => setStatus('idle', 0), 4000);
+  }
+}
 
 // ─── Log ─────────────────────────────────────────────────────────────────────
 
@@ -130,19 +169,26 @@ btnClearWords.addEventListener('click', () => {
 // ─── Scrape & Extract ─────────────────────────────────────────────────────────
 
 btnScrape.addEventListener('click', async () => {
-  const lang = langSelect.value;
+  const lang  = langSelect.value;
+  const total = state.urls.length;
 
-  if (state.urls.length === 0) { log('Aggiungi almeno un URL.', 'error'); return; }
+  if (total === 0) { log('Aggiungi almeno un URL.', 'error'); return; }
 
   btnScrape.disabled = true;
   btnScrape.innerHTML = '<span class="spinner"></span> Elaborazione…';
 
-  for (let i = 0; i < state.urls.length; i++) {
-    const entry = state.urls[i];
+  let hasError = false;
+
+  for (let i = 0; i < total; i++) {
+    const entry     = state.urls[i];
+    const sliceSize = 100 / total;
+    const base      = i * sliceSize;
+
     entry.status = 'loading';
     renderUrls();
 
     log(`Scraping: ${entry.url}`);
+    setStatus('scraping', base + sliceSize * 0.1);
 
     try {
       // 1. Scrape
@@ -154,9 +200,12 @@ btnScrape.addEventListener('click', async () => {
 
       if (!scrapeRes.ok) throw new Error((await scrapeRes.json()).error);
       const { text } = await scrapeRes.json();
-      log(`Testo estratto (${text.length} char). Invio a Claude…`);
+
+      setStatus('analyzing', base + sliceSize * 0.45);
+      log(`Testo estratto (${text.length} char). Analisi con Claude…`);
 
       // 2. Extract — API key is managed server-side via .env
+      setStatus('extracting', base + sliceSize * 0.65);
       const extractRes = await fetch('/api/extract', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -172,9 +221,11 @@ btnScrape.addEventListener('click', async () => {
       state.words.push(...added);
 
       entry.status = 'ok';
+      setStatus('extracting', base + sliceSize); // complete this URL's slice
       log(`+${added.length} parole da ${new URL(entry.url).hostname}`, 'ok');
 
     } catch (err) {
+      hasError = true;
       entry.status = 'error';
       log(`Errore: ${err.message}`, 'error');
     }
@@ -183,8 +234,9 @@ btnScrape.addEventListener('click', async () => {
     renderWords();
   }
 
+  setStatus(hasError ? 'error' : 'done', 100);
   btnScrape.innerHTML = 'Scrape &amp; Estrai parole';
-  btnScrape.disabled  = state.urls.length === 0;
+  btnScrape.disabled  = false;
 });
 
 // ─── Generate ─────────────────────────────────────────────────────────────────
@@ -195,20 +247,24 @@ btnGenerate.addEventListener('click', () => {
   btnGenerate.disabled = true;
   btnGenerate.innerHTML = '<span class="spinner"></span> Generazione…';
 
+  setStatus('generating', 30);
   setTimeout(() => {
     try {
       const input = state.words.slice(0, 15);
       log(`Avvio engine con ${input.length} parole…`);
+      setStatus('generating', 70);
 
       const puzzle = generateCrossword(input);
       const placed = puzzle.across.length + puzzle.down.length;
 
       if (placed === 0) {
         log('Impossibile generare il cruciverba: parole troppo corte o incompatibili.', 'error');
+        setStatus('error', 100);
         return;
       }
 
       log(`Griglia ${puzzle.size.cols}×${puzzle.size.rows} — ${placed} parole collocate, ${puzzle.unused.length} non usate.`, 'ok');
+      setStatus('done', 100);
 
       localStorage.setItem('fdl_puzzle', JSON.stringify(puzzle));
       updatePreviewBtn();
@@ -216,6 +272,7 @@ btnGenerate.addEventListener('click', () => {
 
     } catch (err) {
       log('Errore durante la generazione: ' + err.message, 'error');
+      setStatus('error', 100);
     } finally {
       btnGenerate.innerHTML = 'Genera Cruciverba';
       btnGenerate.disabled = state.words.length === 0;
