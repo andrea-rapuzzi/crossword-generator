@@ -6,11 +6,11 @@
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
-    "start": "node ./dist/server/entry.mjs"
+    "start": "astro preview"
   },
   "dependencies": {
-    "@astrojs/node": "^9.5.5",
-    "astro": "^5.6.1",
+    "@astrojs/netlify": "^7.0.6",
+    "astro": "^6.1.5",
     "cheerio": "^1.0.0"
   }
 }
