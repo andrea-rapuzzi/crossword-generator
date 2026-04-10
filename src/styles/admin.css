@@ -354,6 +354,62 @@ body {
 }
 .word-del:hover { color: var(--color-red); }
 
+/* ─── Status panel ───────────────────────────────────────────────────────── */
+
+.status-panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.status-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.status-icon {
+  width: 8px;
+  height: 8px;
+  border-radius: var(--radius-full);
+  background: var(--color-gray-border);
+  flex-shrink: 0;
+  transition: background var(--transition);
+}
+
+.status-icon--active  { background: var(--color-cyan); animation: pulse 1s ease-in-out infinite; }
+.status-icon--success { background: var(--color-sage); }
+.status-icon--error   { background: var(--color-red); }
+
+.status-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--neutral-500);
+  transition: color var(--transition);
+}
+
+.status-label--active  { color: var(--color-blue); }
+.status-label--success { color: var(--color-sage); }
+.status-label--error   { color: var(--color-red); }
+
+.progress-track {
+  height: 3px;
+  background: var(--color-bg-light);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  width: 0%;
+  background: var(--color-cyan);
+  border-radius: var(--radius-full);
+  transition: width 400ms cubic-bezier(.4,0,.2,1), background var(--transition);
+}
+
+.progress-fill--success { background: var(--color-sage); }
+.progress-fill--error   { background: var(--color-red); }
+
 /* ─── Log ────────────────────────────────────────────────────────────────── */
 
 .log {
@@ -364,7 +420,7 @@ body {
   border: 1px solid var(--color-gray-border);
   border-radius: var(--radius-md);
   padding: var(--space-3);
-  max-height: 120px;
+  max-height: 80px;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
