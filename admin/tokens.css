@@ -1,0 +1,70 @@
+/* ─── Design Tokens — FDL Crossword ─────────────────────────────────────── */
+
+:root {
+
+  /* ── Brand palette ───────────────────────────────────────────────────── */
+  --color-primary-dark:  #131e2e;
+  --color-blue:          #2a589a;
+  --color-blue-hover:    #19355c;
+  --color-cyan:          #62c6e9;
+  --color-cyan-light:    #c5e9f7;
+  --color-sage:          #8fcfaf;
+  --color-red:           #d83d2c;
+  --color-bg-light:      #e0e7ed;
+  --color-bg-beige:      #f0ebe5;
+  --color-gray-mid:      #757575;
+  --color-gray-light:    #b8b8b8;
+  --color-gray-border:   #d4d4d4;
+  --white:               #ffffff;
+
+  /* ── Neutral aliases (usati nell'UI generica) ────────────────────────── */
+  --neutral-900: var(--color-primary-dark);
+  --neutral-700: #2e3a4a;
+  --neutral-500: var(--color-gray-mid);
+  --neutral-300: var(--color-gray-light);
+  --neutral-200: var(--color-gray-border);
+  --neutral-100: var(--color-bg-light);
+  --neutral-50:  var(--color-bg-beige);
+
+  /* ── Crossword cell states ───────────────────────────────────────────── */
+  --cw-cell-bg:           var(--white);           /* Empty */
+  --cw-cell-border:       var(--color-gray-border);
+  --cw-cell-selected:     var(--color-cyan);       /* Selected */
+  --cw-cell-in-word:      var(--color-cyan-light); /* In Word */
+  --cw-cell-black:        var(--color-primary-dark);
+  --cw-cell-correct:      var(--color-sage);       /* Correct */
+  --cw-cell-wrong:        var(--color-red);        /* Wrong */
+  --cw-number:            var(--color-gray-mid);
+
+  /* ── Spacing scale (base 4px) ────────────────────────────────────────── */
+  --space-1:  4px;
+  --space-2:  8px;
+  --space-3:  12px;
+  --space-4:  16px;
+  --space-5:  20px;
+  --space-6:  24px;
+  --space-8:  32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+
+  /* ── Border radius ───────────────────────────────────────────────────── */
+  --radius-sm:   4px;
+  --radius-md:   8px;
+  --radius-lg:   16px;
+  --radius-xl:   24px;
+  --radius-full: 9999px;
+
+  /* ── Typography ──────────────────────────────────────────────────────── */
+  --font-serif: 'Lora', Georgia, serif;
+  --font-sans:  'Inter', system-ui, -apple-system, sans-serif;
+  --font-mono:  'JetBrains Mono', 'Fira Code', monospace;
+
+  /* ── Shadows ─────────────────────────────────────────────────────────── */
+  --shadow-sm: 0 1px 3px rgba(19,30,46,.08);
+  --shadow-md: 0 4px 12px rgba(19,30,46,.10);
+  --shadow-lg: 0 8px 24px rgba(19,30,46,.14);
+
+  /* ── Transitions ─────────────────────────────────────────────────────── */
+  --transition: 160ms ease;
+}

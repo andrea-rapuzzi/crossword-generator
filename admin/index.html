@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FDL Crossword — Admin</title>
+  <link rel="stylesheet" href="./admin.css" />
+</head>
+<body>
+
+  <!-- Header -->
+  <header class="header">
+    <div class="header__logo">FDL <span>Crossword</span></div>
+    <span class="header__subtitle">Admin — Generatore Cruciverba</span>
+  </header>
+
+  <main class="main">
+
+    <!-- ─── Sidebar ─────────────────────────────────────────────────────── -->
+    <aside class="sidebar">
+
+      <!-- API Key -->
+      <section>
+        <p class="section-title">Configurazione</p>
+        <div class="field">
+          <label for="api-key">Claude API Key</label>
+          <input
+            id="api-key"
+            type="password"
+            class="input input--mono"
+            placeholder="sk-ant-…"
+            autocomplete="off"
+          />
+        </div>
+        <div class="field" style="margin-top: var(--space-3)">
+          <label for="lang">Lingua</label>
+          <select id="lang" class="select">
+            <option value="it">Italiano</option>
+            <option value="en">English</option>
+          </select>
+        </div>
+      </section>
+
+      <hr class="divider" />
+
+      <!-- URL input -->
+      <section>
+        <p class="section-title">Fonti</p>
+        <div class="field">
+          <label for="url-input">Aggiungi URL</label>
+          <div style="display:flex; gap:var(--space-2)">
+            <input
+              id="url-input"
+              type="url"
+              class="input"
+              placeholder="https://…"
+            />
+            <button id="btn-add-url" class="btn btn--secondary" title="Aggiungi">+</button>
+          </div>
+        </div>
+
+        <!-- URL list -->
+        <div id="url-list" class="url-list" style="margin-top:var(--space-3)">
+          <p class="url-empty">Nessun URL aggiunto</p>
+        </div>
+      </section>
+
+      <hr class="divider" />
+
+      <!-- Actions -->
+      <section style="display:flex; flex-direction:column; gap:var(--space-3)">
+        <button id="btn-scrape" class="btn btn--primary btn--full" disabled>
+          Scrape &amp; Estrai parole
+        </button>
+        <button id="btn-generate" class="btn btn--accent btn--full" disabled>
+          Genera Cruciverba
+        </button>
+      </section>
+
+      <!-- Log -->
+      <section>
+        <p class="section-title">Log</p>
+        <div id="log" class="log">
+          <span class="log__line">Pronto.</span>
+        </div>
+      </section>
+
+    </aside>
+
+    <!-- ─── Content ──────────────────────────────────────────────────────── -->
+    <section class="content">
+
+      <!-- Words card -->
+      <div class="card">
+        <div class="card__header">
+          <span class="card__title">Parole estratte</span>
+          <div style="display:flex;align-items:center;gap:var(--space-3)">
+            <span id="word-count" class="badge badge--blue" style="display:none"></span>
+            <button id="btn-clear-words" class="btn btn--secondary btn--sm" style="display:none">Svuota</button>
+          </div>
+        </div>
+
+        <div id="words-empty" style="padding:var(--space-8) 0; text-align:center; color:var(--neutral-300); font-size:13px;">
+          Le parole estratte dagli articoli appariranno qui.
+        </div>
+
+        <table id="words-table" class="words-table" style="display:none">
+          <thead>
+            <tr>
+              <th>Parola</th>
+              <th>Indizio</th>
+              <th>Suggerimento</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="words-body"></tbody>
+        </table>
+      </div>
+
+    </section>
+
+  </main>
+
+  <script type="module" src="./admin.js" defer></script>
+</body>
+</html>

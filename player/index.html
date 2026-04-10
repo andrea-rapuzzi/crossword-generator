@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <title>FDL Crossword</title>
+  <link rel="stylesheet" href="./player.css" />
+</head>
+<body>
+  <div id="cw-root"></div>
+
+  <script src="./player.js"></script>
+  <script>
+    // Data priority: URL param → localStorage → window.__CROSSWORD__
+    let data = null;
+
+    const params = new URLSearchParams(location.search);
+    if (params.has('data')) {
+      try { data = JSON.parse(atob(params.get('data'))); } catch (_) {}
+    }
+
+    if (!data) {
+      try { data = JSON.parse(localStorage.getItem('fdl_puzzle') || 'null'); } catch (_) {}
+    }
+
+    if (!data && window.__CROSSWORD__) data = window.__CROSSWORD__;
+
+    if (data) {
+      FDLCrossword.init(document.getElementById('cw-root'), data);
+    } else {
+      document.getElementById('cw-root').innerHTML =
+        '<p style="padding:2rem;font-family:sans-serif;color:#757575">Nessun cruciverba trovato.<br>' +
+        'Genera un cruciverba dall\'admin e clicca "Genera Cruciverba".</p>';
+    }
+  </script>
+</body>
+</html>
