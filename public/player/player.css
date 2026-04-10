@@ -121,11 +121,18 @@
 
 /* ── Grid scroll wrapper ───────────────────────────────────────────────────── */
 .cw-grid-scroll {
-  overflow: auto;
-  -webkit-overflow-scrolling: touch;
+  overflow: hidden;
+  width: 100%;
+  height: 75vh;
+  position: relative;
   border-radius: 8px;
   box-shadow: 0 2px 12px rgba(19,30,46,.12);
+  touch-action: none;   /* all gestures handled by JS */
+  cursor: grab;
+  user-select: none;
+  -webkit-user-select: none;
 }
+.cw-grid-scroll:active { cursor: grabbing; }
 
 /* ── Grid ──────────────────────────────────────────────────────────────────── */
 .cw-grid {
@@ -133,6 +140,8 @@
   grid-template-columns: repeat(var(--cols), var(--cell));
   grid-template-rows:    repeat(var(--rows), var(--cell));
   border: 2px solid var(--cw-primary);
+  transform-origin: 0 0;
+  will-change: transform;
   user-select: none;
   -webkit-user-select: none;
 }
