@@ -30,6 +30,7 @@ const btnAddWordOk   = document.getElementById('btn-add-word-ok');
 const btnAddWordCancel = document.getElementById('btn-add-word-cancel');
 const addUrlInput      = document.getElementById('add-url');
 const btnPreview    = document.getElementById('btn-preview');
+const btnDemo       = document.getElementById('btn-demo');
 const statusIcon    = document.getElementById('status-icon');
 const statusLabel   = document.getElementById('status-label');
 const progressFill  = document.getElementById('progress-fill');
@@ -146,7 +147,7 @@ function renderWords() {
 
   if (empty) return;
 
-  wordCount.textContent = `${state.words.length} parole`;
+  wordCount.textContent = `${state.words.length} ${state.words.length === 1 ? 'parola' : 'parole'}`;
   wordsBody.innerHTML = '';
 
   state.words.forEach((w, i) => {
@@ -386,6 +387,65 @@ function updatePreviewBtn() {
 }
 
 btnPreview.addEventListener('click', () => window.open('/player/', '_blank'));
+
+// ─── Demo ─────────────────────────────────────────────────────────────────────
+
+const DEMO_WORDS = [
+  { answer: 'CARBONARA',   clue: 'Pasta romana con guanciale e uova',           hint: 'Il piatto simbolo di Roma, con pecorino e pepe nero', sourceUrl: 'https://www.finedininglovers.it' },
+  { answer: 'RISOTTO',     clue: 'Riso mantecato tipico del Nord Italia',        hint: 'La cottura lenta con brodo e il soffritto sono il segreto', sourceUrl: 'https://www.finedininglovers.it' },
+  { answer: 'TARTUFO',     clue: 'Fungo ipogeo dal profumo inconfondibile',      hint: 'Il diamante della cucina si trova sotto terra', sourceUrl: 'https://www.finedininglovers.it' },
+  { answer: 'BURRATA',     clue: 'Formaggio pugliese dal cuore cremoso',         hint: 'Involucro di mozzarella che cela panna e stracciatella', sourceUrl: 'https://www.finedininglovers.it' },
+  { answer: 'PESTO',       clue: 'Salsa genovese a base di basilico',            hint: 'Basilico, pinoli, parmigiano e olio ligure pestati nel mortaio', sourceUrl: 'https://www.finedininglovers.it' },
+  { answer: 'MASCARPONE',  clue: 'Formaggio lombardo base del tiramisù',         hint: 'Cremoso e delicato, indispensabile nel dolce al cucchiaio più famoso', sourceUrl: 'https://www.finedininglovers.it' },
+  { answer: 'AMARONE',     clue: 'Vino rosso potente della Valpolicella',        hint: 'Prodotto con uve appassite, è tra i grandi rossi italiani', sourceUrl: 'https://www.finedininglovers.it' },
+  { answer: 'ACETO',       clue: 'Condimento ottenuto per fermentazione',        hint: 'Quello balsamico di Modena è un presidio Slow Food', sourceUrl: 'https://www.finedininglovers.it' },
+  { answer: 'POLENTA',     clue: 'Piatto contadino di farina di mais',           hint: 'Norditaliana per eccellenza, si serve morbida o abbrustolita', sourceUrl: 'https://www.finedininglovers.it' },
+  { answer: 'RAGÙ',        clue: 'Sugo di carne lento della tradizione',         hint: 'Quello bolognese si cuoce per ore con carni miste e pomodoro', sourceUrl: 'https://www.finedininglovers.it' },
+  { answer: 'OSSOBUCO',    clue: 'Stinco di vitello in umido milanese',          hint: 'Si serve con la gremolada e il midollo è la parte più prelibata', sourceUrl: 'https://www.finedininglovers.it' },
+  { answer: 'CAPONATA',    clue: 'Agrodolce siciliano con melanzane',            hint: 'Cipolla, sedano, olive e capperi completano questo antipasto isolano', sourceUrl: 'https://www.finedininglovers.it' },
+  { answer: 'LIMONCELLO',  clue: 'Liquore campano a base di scorze di limone',   hint: 'Il digestivo più iconico della Costiera Amalfitana', sourceUrl: 'https://www.finedininglovers.it' },
+  { answer: 'ARANCINO',    clue: 'Riso fritto ripieno tipico siciliano',         hint: 'La forma conica a Catania, rotonda a Palermo: la disputa continua', sourceUrl: 'https://www.finedininglovers.it' },
+  { answer: 'CANNOLO',     clue: 'Dolce siciliano con cialda fritta e ricotta',  hint: 'Il ripieno di ricotta di pecora è il vero segreto del pasticciere', sourceUrl: 'https://www.finedininglovers.it' },
+];
+
+btnDemo.addEventListener('click', () => {
+  state.words = DEMO_WORDS.map(w => ({ ...w, priority: false }));
+  renderWords();
+  log('Parole demo caricate. Generazione in corso…', 'ok');
+
+  btnGenerate.disabled = true;
+  btnGenerate.innerHTML = '<span class="spinner"></span> Generazione…';
+  setStatus('generating', 30);
+
+  setTimeout(() => {
+    try {
+      const sorted = [...state.words].sort((a, b) => (b.priority ? 1 : 0) - (a.priority ? 1 : 0));
+      const input  = sorted.slice(0, 15);
+      setStatus('generating', 70);
+
+      const puzzle = generateCrossword(input);
+      const placed = puzzle.across.length + puzzle.down.length;
+
+      if (placed === 0) {
+        log('Impossibile generare la griglia demo.', 'error');
+        setStatus('error', 100);
+        return;
+      }
+
+      log(`Demo: griglia ${puzzle.size.cols}×${puzzle.size.rows} — ${placed} parole collocate.`, 'ok');
+      setStatus('done', 100);
+      localStorage.setItem('fdl_puzzle', JSON.stringify(puzzle));
+      updatePreviewBtn();
+      window.open('/player/', '_blank');
+    } catch (err) {
+      log('Errore demo: ' + err.message, 'error');
+      setStatus('error', 100);
+    } finally {
+      btnGenerate.innerHTML = 'Genera Cruciverba';
+      btnGenerate.disabled  = state.words.length === 0;
+    }
+  }, 50);
+});
 
 // ─── Init ─────────────────────────────────────────────────────────────────────
 

@@ -56,8 +56,8 @@
   --radius-full: 9999px;
 
   /* ── Typography ──────────────────────────────────────────────────────── */
-  --font-serif: 'Lora', Georgia, serif;
-  --font-sans:  'Inter', system-ui, -apple-system, sans-serif;
+  --font-serif: 'Rufina', Georgia, serif;
+  --font-sans:  'Jost', system-ui, -apple-system, sans-serif;
   --font-mono:  'JetBrains Mono', 'Fira Code', monospace;
 
   /* ── Shadows ─────────────────────────────────────────────────────────── */
@@ -66,5 +66,5 @@
   --shadow-lg: 0 8px 24px rgba(19,30,46,.14);
 
   /* ── Transitions ─────────────────────────────────────────────────────── */
-  --transition: 160ms ease;
+  --transition: 160ms cubic-bezier(.4,0,.2,1);
 }
