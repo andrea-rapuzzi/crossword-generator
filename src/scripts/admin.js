@@ -391,21 +391,21 @@ btnPreview.addEventListener('click', () => window.open('/player/', '_blank'));
 // ─── Demo ─────────────────────────────────────────────────────────────────────
 
 const DEMO_WORDS = [
-  { answer: 'CARBONARA',   clue: 'Pasta romana con guanciale e uova',           hint: 'Il piatto simbolo di Roma, con pecorino e pepe nero', sourceUrl: 'https://www.finedininglovers.it' },
-  { answer: 'RISOTTO',     clue: 'Riso mantecato tipico del Nord Italia',        hint: 'La cottura lenta con brodo e il soffritto sono il segreto', sourceUrl: 'https://www.finedininglovers.it' },
-  { answer: 'TARTUFO',     clue: 'Fungo ipogeo dal profumo inconfondibile',      hint: 'Il diamante della cucina si trova sotto terra', sourceUrl: 'https://www.finedininglovers.it' },
-  { answer: 'BURRATA',     clue: 'Formaggio pugliese dal cuore cremoso',         hint: 'Involucro di mozzarella che cela panna e stracciatella', sourceUrl: 'https://www.finedininglovers.it' },
-  { answer: 'PESTO',       clue: 'Salsa genovese a base di basilico',            hint: 'Basilico, pinoli, parmigiano e olio ligure pestati nel mortaio', sourceUrl: 'https://www.finedininglovers.it' },
-  { answer: 'MASCARPONE',  clue: 'Formaggio lombardo base del tiramisù',         hint: 'Cremoso e delicato, indispensabile nel dolce al cucchiaio più famoso', sourceUrl: 'https://www.finedininglovers.it' },
-  { answer: 'AMARONE',     clue: 'Vino rosso potente della Valpolicella',        hint: 'Prodotto con uve appassite, è tra i grandi rossi italiani', sourceUrl: 'https://www.finedininglovers.it' },
-  { answer: 'ACETO',       clue: 'Condimento ottenuto per fermentazione',        hint: 'Quello balsamico di Modena è un presidio Slow Food', sourceUrl: 'https://www.finedininglovers.it' },
-  { answer: 'POLENTA',     clue: 'Piatto contadino di farina di mais',           hint: 'Norditaliana per eccellenza, si serve morbida o abbrustolita', sourceUrl: 'https://www.finedininglovers.it' },
-  { answer: 'RAGÙ',        clue: 'Sugo di carne lento della tradizione',         hint: 'Quello bolognese si cuoce per ore con carni miste e pomodoro', sourceUrl: 'https://www.finedininglovers.it' },
-  { answer: 'OSSOBUCO',    clue: 'Stinco di vitello in umido milanese',          hint: 'Si serve con la gremolada e il midollo è la parte più prelibata', sourceUrl: 'https://www.finedininglovers.it' },
-  { answer: 'CAPONATA',    clue: 'Agrodolce siciliano con melanzane',            hint: 'Cipolla, sedano, olive e capperi completano questo antipasto isolano', sourceUrl: 'https://www.finedininglovers.it' },
-  { answer: 'LIMONCELLO',  clue: 'Liquore campano a base di scorze di limone',   hint: 'Il digestivo più iconico della Costiera Amalfitana', sourceUrl: 'https://www.finedininglovers.it' },
-  { answer: 'ARANCINO',    clue: 'Riso fritto ripieno tipico siciliano',         hint: 'La forma conica a Catania, rotonda a Palermo: la disputa continua', sourceUrl: 'https://www.finedininglovers.it' },
-  { answer: 'CANNOLO',     clue: 'Dolce siciliano con cialda fritta e ricotta',  hint: 'Il ripieno di ricotta di pecora è il vero segreto del pasticciere', sourceUrl: 'https://www.finedininglovers.it' },
+  { answer: 'CARBONARA',   clue: 'Pasta romana con guanciale e uova',           hint: 'Il piatto simbolo di Roma, con pecorino e pepe nero', sourceUrl: 'https://www.finedininglovers.it/ricette/ricette-di-pasta/carbonara-ricetta-originale/' },
+  { answer: 'RISOTTO',     clue: 'Riso mantecato tipico del Nord Italia',        hint: 'La cottura lenta con brodo e il soffritto sono il segreto', sourceUrl: 'https://www.finedininglovers.it/ricette/ricette-di-riso/risotto-allo-zafferano/' },
+  { answer: 'TARTUFO',     clue: 'Fungo ipogeo dal profumo inconfondibile',      hint: 'Il diamante della cucina si trova sotto terra', sourceUrl: 'https://www.finedininglovers.it/storie/curiosita/tartufo-bianco-pregiato/' },
+  { answer: 'BURRATA',     clue: 'Formaggio pugliese dal cuore cremoso',         hint: 'Involucro di mozzarella che cela panna e stracciatella', sourceUrl: 'https://www.finedininglovers.it/storie/prodotti/burrata-formaggio/' },
+  { answer: 'PESTO',       clue: 'Salsa genovese a base di basilico',            hint: 'Basilico, pinoli, parmigiano e olio ligure pestati nel mortaio', sourceUrl: 'https://www.finedininglovers.it/ricette/salse-e-sughi/pesto-genovese-ricetta-originale/' },
+  { answer: 'MASCARPONE',  clue: 'Formaggio lombardo base del tiramisù',         hint: 'Cremoso e delicato, indispensabile nel dolce al cucchiaio più famoso', sourceUrl: 'https://www.finedininglovers.it/storie/prodotti/mascarpone-formaggio/' },
+  { answer: 'AMARONE',     clue: 'Vino rosso potente della Valpolicella',        hint: 'Prodotto con uve appassite, è tra i grandi rossi italiani', sourceUrl: 'https://www.finedininglovers.it/storie/vino/amarone-della-valpolicella/' },
+  { answer: 'ACETO',       clue: 'Condimento ottenuto per fermentazione',        hint: 'Quello balsamico di Modena è un presidio Slow Food', sourceUrl: 'https://www.finedininglovers.it/storie/prodotti/aceto-balsamico-di-modena/' },
+  { answer: 'POLENTA',     clue: 'Piatto contadino di farina di mais',           hint: 'Norditaliana per eccellenza, si serve morbida o abbrustolita', sourceUrl: 'https://www.finedininglovers.it/ricette/ricette-vegetariane/polenta-classica/' },
+  { answer: 'RAGÙ',        clue: 'Sugo di carne lento della tradizione',         hint: 'Quello bolognese si cuoce per ore con carni miste e pomodoro', sourceUrl: 'https://www.finedininglovers.it/ricette/salse-e-sughi/ragu-alla-bolognese-ricetta-originale/' },
+  { answer: 'OSSOBUCO',    clue: 'Stinco di vitello in umido milanese',          hint: 'Si serve con la gremolada e il midollo è la parte più prelibata', sourceUrl: 'https://www.finedininglovers.it/ricette/ricette-di-carne/ossobuco-alla-milanese/' },
+  { answer: 'CAPONATA',    clue: 'Agrodolce siciliano con melanzane',            hint: 'Cipolla, sedano, olive e capperi completano questo antipasto isolano', sourceUrl: 'https://www.finedininglovers.it/ricette/ricette-vegetariane/caponata-siciliana/' },
+  { answer: 'LIMONCELLO',  clue: 'Liquore campano a base di scorze di limone',   hint: 'Il digestivo più iconico della Costiera Amalfitana', sourceUrl: 'https://www.finedininglovers.it/ricette/bevande-e-cocktail/limoncello-ricetta-originale/' },
+  { answer: 'ARANCINO',    clue: 'Riso fritto ripieno tipico siciliano',         hint: 'La forma conica a Catania, rotonda a Palermo: la disputa continua', sourceUrl: 'https://www.finedininglovers.it/ricette/ricette-di-riso/arancini-siciliani/' },
+  { answer: 'CANNOLO',     clue: 'Dolce siciliano con cialda fritta e ricotta',  hint: 'Il ripieno di ricotta di pecora è il vero segreto del pasticciere', sourceUrl: 'https://www.finedininglovers.it/ricette/ricette-di-dolci/cannoli-siciliani/' },
 ];
 
 btnDemo.addEventListener('click', () => {

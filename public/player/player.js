@@ -471,15 +471,6 @@
         item.appendChild(el('span', 'cw-clue-num', w.number + '.'));
         item.appendChild(el('span', 'cw-clue-text', w.clue));
 
-        if (w.sourceUrl) {
-          const link = el('a', 'cw-clue-hint', 'fonte');
-          link.href = w.sourceUrl;
-          link.target = '_blank';
-          link.rel = 'noopener noreferrer';
-          link.title = w.hint || 'Apri articolo';
-          item.appendChild(link);
-        }
-
         item.addEventListener('click', (e) => {
           if (e.target.tagName === 'A') return;
           selectByClue(state, w.number, dir, true);
