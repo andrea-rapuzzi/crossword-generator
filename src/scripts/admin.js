@@ -20,8 +20,17 @@ const wordsEmpty    = document.getElementById('words-empty');
 const wordsTable    = document.getElementById('words-table');
 const wordsBody     = document.getElementById('words-body');
 const wordCount     = document.getElementById('word-count');
-const btnClearWords = document.getElementById('btn-clear-words');
+const btnClearWords  = document.getElementById('btn-clear-words');
+const btnAddWord     = document.getElementById('btn-add-word');
+const addWordForm    = document.getElementById('add-word-form');
+const addAnswerInput = document.getElementById('add-answer');
+const addClueInput   = document.getElementById('add-clue');
+const addHintInput   = document.getElementById('add-hint');
+const btnAddWordOk   = document.getElementById('btn-add-word-ok');
+const btnAddWordCancel = document.getElementById('btn-add-word-cancel');
+const addUrlInput      = document.getElementById('add-url');
 const btnPreview    = document.getElementById('btn-preview');
+const btnDemo       = document.getElementById('btn-demo');
 const statusIcon    = document.getElementById('status-icon');
 const statusLabel   = document.getElementById('status-label');
 const progressFill  = document.getElementById('progress-fill');
@@ -138,26 +147,76 @@ function renderWords() {
 
   if (empty) return;
 
-  wordCount.textContent = `${state.words.length} parole`;
+  wordCount.textContent = `${state.words.length} ${state.words.length === 1 ? 'parola' : 'parole'}`;
   wordsBody.innerHTML = '';
 
   state.words.forEach((w, i) => {
     const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td><span class="word-answer">${w.answer}</span></td>
-      <td class="word-clue">${w.clue}</td>
-      <td class="word-hint">${w.hint || '—'}</td>
-      <td>${w.sourceUrl ? `<a href="${w.sourceUrl}" target="_blank" rel="noopener" class="word-source" title="${w.sourceUrl}">↗</a>` : '—'}</td>
-      <td><button class="word-del" data-i="${i}" title="Rimuovi">×</button></td>
-    `;
-    wordsBody.appendChild(tr);
-  });
+    if (w.priority) tr.classList.add('word-priority-row');
 
-  wordsBody.querySelectorAll('.word-del').forEach(btn => {
-    btn.addEventListener('click', () => {
-      state.words.splice(Number(btn.dataset.i), 1);
+    // ★ Priority
+    const tdStar = document.createElement('td');
+    tdStar.style.textAlign = 'center';
+    const starBtn = document.createElement('button');
+    starBtn.className = `word-priority${w.priority ? ' word-priority--active' : ''}`;
+    starBtn.title = w.priority ? 'Rimuovi priorità' : 'Segna come prioritaria';
+    starBtn.textContent = w.priority ? '★' : '☆';
+    starBtn.addEventListener('click', () => {
+      state.words[i].priority = !state.words[i].priority;
       renderWords();
     });
+    tdStar.appendChild(starBtn);
+
+    // Parola
+    const tdAnswer = document.createElement('td');
+    const answerSpan = document.createElement('span');
+    answerSpan.className = 'word-answer';
+    answerSpan.textContent = w.answer;
+    tdAnswer.appendChild(answerSpan);
+
+    // Indizio (editable)
+    const tdClue = document.createElement('td');
+    tdClue.className = 'word-clue word-editable';
+    tdClue.contentEditable = 'true';
+    tdClue.textContent = w.clue;
+    tdClue.addEventListener('blur', () => { state.words[i].clue = tdClue.textContent.trim(); });
+
+    // Suggerimento (editable)
+    const tdHint = document.createElement('td');
+    tdHint.className = 'word-hint word-editable';
+    tdHint.contentEditable = 'true';
+    tdHint.textContent = w.hint || '';
+    tdHint.addEventListener('blur', () => { state.words[i].hint = tdHint.textContent.trim(); });
+
+    // Fonte
+    const tdSource = document.createElement('td');
+    if (w.sourceUrl) {
+      const a = document.createElement('a');
+      a.href = w.sourceUrl;
+      a.target = '_blank';
+      a.rel = 'noopener';
+      a.className = 'word-source';
+      a.title = w.sourceUrl;
+      a.textContent = '↗';
+      tdSource.appendChild(a);
+    } else {
+      tdSource.textContent = '—';
+    }
+
+    // Elimina
+    const tdDel = document.createElement('td');
+    const delBtn = document.createElement('button');
+    delBtn.className = 'word-del';
+    delBtn.title = 'Rimuovi';
+    delBtn.textContent = '×';
+    delBtn.addEventListener('click', () => {
+      state.words.splice(i, 1);
+      renderWords();
+    });
+    tdDel.appendChild(delBtn);
+
+    tr.append(tdStar, tdAnswer, tdClue, tdHint, tdSource, tdDel);
+    wordsBody.appendChild(tr);
   });
 }
 
@@ -165,6 +224,46 @@ btnClearWords.addEventListener('click', () => {
   state.words = [];
   renderWords();
 });
+
+// ─── Add word manually ────────────────────────────────────────────────────────
+
+function openAddWordForm() {
+  addWordForm.style.display = 'flex';
+  addAnswerInput.focus();
+}
+
+function closeAddWordForm() {
+  addWordForm.style.display = 'none';
+  addAnswerInput.value = '';
+  addClueInput.value   = '';
+  addHintInput.value   = '';
+  addUrlInput.value    = '';
+}
+
+function commitAddWord() {
+  const answer = addAnswerInput.value.trim().toUpperCase().replace(/\s+/g, '');
+  const clue   = addClueInput.value.trim();
+  if (!answer || !clue) { addAnswerInput.focus(); return; }
+  if (state.words.find(w => w.answer === answer)) {
+    log(`"${answer}" è già presente.`, 'error');
+    return;
+  }
+  const sourceUrl = addUrlInput.value.trim();
+  state.words.push({ answer, clue, hint: addHintInput.value.trim(), sourceUrl, priority: false });
+  renderWords();
+  closeAddWordForm();
+  log(`Parola aggiunta manualmente: ${answer}`, 'ok');
+}
+
+btnAddWord.addEventListener('click', () => {
+  addWordForm.style.display === 'none' ? openAddWordForm() : closeAddWordForm();
+});
+btnAddWordOk.addEventListener('click', commitAddWord);
+btnAddWordCancel.addEventListener('click', closeAddWordForm);
+addAnswerInput.addEventListener('keydown', e => { if (e.key === 'Enter') addClueInput.focus(); });
+addClueInput.addEventListener('keydown',   e => { if (e.key === 'Enter') addHintInput.focus(); });
+addHintInput.addEventListener('keydown',   e => { if (e.key === 'Enter') addUrlInput.focus(); });
+addUrlInput.addEventListener('keydown',    e => { if (e.key === 'Enter') commitAddWord(); });
 
 // ─── Scrape & Extract ─────────────────────────────────────────────────────────
 
@@ -250,7 +349,8 @@ btnGenerate.addEventListener('click', () => {
   setStatus('generating', 30);
   setTimeout(() => {
     try {
-      const input = state.words.slice(0, 15);
+      const sorted = [...state.words].sort((a, b) => (b.priority ? 1 : 0) - (a.priority ? 1 : 0));
+      const input = sorted.slice(0, 15);
       log(`Avvio engine con ${input.length} parole…`);
       setStatus('generating', 70);
 
@@ -287,6 +387,65 @@ function updatePreviewBtn() {
 }
 
 btnPreview.addEventListener('click', () => window.open('/player/', '_blank'));
+
+// ─── Demo ─────────────────────────────────────────────────────────────────────
+
+const DEMO_WORDS = [
+  { answer: 'CARBONARA',   clue: 'Pasta romana con guanciale e uova',           hint: 'Il piatto simbolo di Roma, con pecorino e pepe nero', sourceUrl: 'https://www.finedininglovers.it' },
+  { answer: 'RISOTTO',     clue: 'Riso mantecato tipico del Nord Italia',        hint: 'La cottura lenta con brodo e il soffritto sono il segreto', sourceUrl: 'https://www.finedininglovers.it' },
+  { answer: 'TARTUFO',     clue: 'Fungo ipogeo dal profumo inconfondibile',      hint: 'Il diamante della cucina si trova sotto terra', sourceUrl: 'https://www.finedininglovers.it' },
+  { answer: 'BURRATA',     clue: 'Formaggio pugliese dal cuore cremoso',         hint: 'Involucro di mozzarella che cela panna e stracciatella', sourceUrl: 'https://www.finedininglovers.it' },
+  { answer: 'PESTO',       clue: 'Salsa genovese a base di basilico',            hint: 'Basilico, pinoli, parmigiano e olio ligure pestati nel mortaio', sourceUrl: 'https://www.finedininglovers.it' },
+  { answer: 'MASCARPONE',  clue: 'Formaggio lombardo base del tiramisù',         hint: 'Cremoso e delicato, indispensabile nel dolce al cucchiaio più famoso', sourceUrl: 'https://www.finedininglovers.it' },
+  { answer: 'AMARONE',     clue: 'Vino rosso potente della Valpolicella',        hint: 'Prodotto con uve appassite, è tra i grandi rossi italiani', sourceUrl: 'https://www.finedininglovers.it' },
+  { answer: 'ACETO',       clue: 'Condimento ottenuto per fermentazione',        hint: 'Quello balsamico di Modena è un presidio Slow Food', sourceUrl: 'https://www.finedininglovers.it' },
+  { answer: 'POLENTA',     clue: 'Piatto contadino di farina di mais',           hint: 'Norditaliana per eccellenza, si serve morbida o abbrustolita', sourceUrl: 'https://www.finedininglovers.it' },
+  { answer: 'RAGÙ',        clue: 'Sugo di carne lento della tradizione',         hint: 'Quello bolognese si cuoce per ore con carni miste e pomodoro', sourceUrl: 'https://www.finedininglovers.it' },
+  { answer: 'OSSOBUCO',    clue: 'Stinco di vitello in umido milanese',          hint: 'Si serve con la gremolada e il midollo è la parte più prelibata', sourceUrl: 'https://www.finedininglovers.it' },
+  { answer: 'CAPONATA',    clue: 'Agrodolce siciliano con melanzane',            hint: 'Cipolla, sedano, olive e capperi completano questo antipasto isolano', sourceUrl: 'https://www.finedininglovers.it' },
+  { answer: 'LIMONCELLO',  clue: 'Liquore campano a base di scorze di limone',   hint: 'Il digestivo più iconico della Costiera Amalfitana', sourceUrl: 'https://www.finedininglovers.it' },
+  { answer: 'ARANCINO',    clue: 'Riso fritto ripieno tipico siciliano',         hint: 'La forma conica a Catania, rotonda a Palermo: la disputa continua', sourceUrl: 'https://www.finedininglovers.it' },
+  { answer: 'CANNOLO',     clue: 'Dolce siciliano con cialda fritta e ricotta',  hint: 'Il ripieno di ricotta di pecora è il vero segreto del pasticciere', sourceUrl: 'https://www.finedininglovers.it' },
+];
+
+btnDemo.addEventListener('click', () => {
+  state.words = DEMO_WORDS.map(w => ({ ...w, priority: false }));
+  renderWords();
+  log('Parole demo caricate. Generazione in corso…', 'ok');
+
+  btnGenerate.disabled = true;
+  btnGenerate.innerHTML = '<span class="spinner"></span> Generazione…';
+  setStatus('generating', 30);
+
+  setTimeout(() => {
+    try {
+      const sorted = [...state.words].sort((a, b) => (b.priority ? 1 : 0) - (a.priority ? 1 : 0));
+      const input  = sorted.slice(0, 15);
+      setStatus('generating', 70);
+
+      const puzzle = generateCrossword(input);
+      const placed = puzzle.across.length + puzzle.down.length;
+
+      if (placed === 0) {
+        log('Impossibile generare la griglia demo.', 'error');
+        setStatus('error', 100);
+        return;
+      }
+
+      log(`Demo: griglia ${puzzle.size.cols}×${puzzle.size.rows} — ${placed} parole collocate.`, 'ok');
+      setStatus('done', 100);
+      localStorage.setItem('fdl_puzzle', JSON.stringify(puzzle));
+      updatePreviewBtn();
+      window.open('/player/', '_blank');
+    } catch (err) {
+      log('Errore demo: ' + err.message, 'error');
+      setStatus('error', 100);
+    } finally {
+      btnGenerate.innerHTML = 'Genera Cruciverba';
+      btnGenerate.disabled  = state.words.length === 0;
+    }
+  }, 50);
+});
 
 // ─── Init ─────────────────────────────────────────────────────────────────────
 

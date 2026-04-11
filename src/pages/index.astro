@@ -9,7 +9,7 @@ export const prerender = false;
   <title>FDL Crossword — Admin</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Lora:wght@600;700&display=swap" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Jost:wght@400;500;600;700&family=Rufina:wght@400;700&display=swap" />
   <style>
     @import '../styles/tokens.css';
     @import '../styles/admin.css';
@@ -21,6 +21,7 @@ export const prerender = false;
   <header class="header">
     <div class="header__logo">FDL <span>Crossword</span></div>
 
+    <button id="btn-demo" class="btn btn--ghost btn--sm">Demo ✦</button>
     <button id="btn-preview" class="btn btn--ghost btn--sm" disabled>Anteprima ↗</button>
   </header>
 
@@ -68,11 +69,11 @@ export const prerender = false;
       <hr class="divider" />
 
       <!-- Actions -->
-      <section style="display:flex; flex-direction:column; gap:var(--space-3)">
-        <button id="btn-scrape" class="btn btn--primary btn--full" disabled="disabled">
-          Scrape &amp; Estrai parole
+      <section style="display:flex; flex-direction:row; flex-wrap:wrap; gap:var(--space-3); align-items:center">
+        <button id="btn-scrape" class="btn btn--pill btn--pill-blue" disabled="disabled">
+          Scrape Contenuti
         </button>
-        <button id="btn-generate" class="btn btn--accent btn--full" disabled>
+        <button id="btn-generate" class="btn btn--pill btn--pill-navy" disabled>
           Genera Cruciverba
         </button>
       </section>
@@ -104,17 +105,29 @@ export const prerender = false;
           <span class="card__title">Parole estratte</span>
           <div style="display:flex;align-items:center;gap:var(--space-3)">
             <span id="word-count" class="badge badge--blue" style="display:none"></span>
-            <button id="btn-clear-words" class="btn btn--secondary btn--sm" style="display:none">Svuota</button>
+            <button id="btn-add-word" class="btn btn--secondary btn--sm">+ Aggiungi</button>
+            <button id="btn-clear-words" class="btn btn--danger-ghost btn--sm" style="display:none">Svuota</button>
           </div>
         </div>
 
-        <div id="words-empty" style="padding:var(--space-8) 0; text-align:center; color:var(--neutral-300); font-size:13px;">
+        <!-- Add word inline form -->
+        <div id="add-word-form" class="add-word-form" style="display:none">
+          <input id="add-answer" type="text"  class="input add-word-form__answer" placeholder="PAROLA"             aria-label="Parola" autocomplete="off" />
+          <input id="add-clue"   type="text"  class="input" placeholder="Indizio…"      style="flex:1"             aria-label="Indizio" />
+          <input id="add-hint"   type="text"  class="input" placeholder="Suggerimento…" style="flex:1"             aria-label="Suggerimento" />
+          <input id="add-url"    type="url"   class="input add-word-form__url" placeholder="https://… (opzionale)" aria-label="URL fonte (opzionale)" />
+          <button id="btn-add-word-ok"     class="btn btn--primary btn--sm">Aggiungi</button>
+          <button id="btn-add-word-cancel" class="btn btn--secondary btn--sm">Annulla</button>
+        </div>
+
+        <div id="words-empty" class="words-empty-state">
           Le parole estratte dagli articoli appariranno qui.
         </div>
 
         <table id="words-table" class="words-table" style="display:none">
           <thead>
             <tr>
+              <th class="col-priority" title="Priorità">★</th>
               <th>Parola</th>
               <th>Indizio</th>
               <th>Suggerimento</th>

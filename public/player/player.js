@@ -64,6 +64,10 @@
   /* ── Selection ───────────────────────────────────────────────────────────── */
 
   function selectCell(state, r, c) {
+    // [P2] Dismiss mobile scroll hint on first explicit cell tap
+    if (state.scrollHint && !state.scrollHint.classList.contains('cw-scroll-hint--hidden')) {
+      state.scrollHint.classList.add('cw-scroll-hint--hidden');
+    }
     const info = state.wordMap[cellKey(r, c)];
     if (!info) return;
 
@@ -251,6 +255,13 @@
   function renderActiveBar(state) {
     const bar = state.activeBarEl;
     if (!bar || !state.sel) return;
+
+    // [P1] Clear verify error state when user moves to a new clue
+    if (bar.classList.contains('cw-active-bar--error')) {
+      bar.classList.remove('cw-active-bar--error');
+      if (state._verifyTimer) { clearTimeout(state._verifyTimer); state._verifyTimer = null; }
+    }
+
     const clue = getClue(state.puzzle, state.sel.clueNumber, state.sel.dir);
     if (!clue) return;
     const dirLabel = state.sel.dir === 'across' ? 'Orizzontale' : 'Verticale';
@@ -284,10 +295,44 @@
     return true;
   }
 
+  /* [P1] Count filled cells that are wrong */
+  function countErrors(state) {
+    var count = 0;
+    for (var r = 0; r < state.puzzle.size.rows; r++) {
+      for (var c = 0; c < state.puzzle.size.cols; c++) {
+        var cell = state.puzzle.grid[r][c];
+        if (!cell.isBlack && state.userGrid[r][c] && state.userGrid[r][c] !== cell.letter) count++;
+      }
+    }
+    return count;
+  }
+
+  /* [P1] Show transient error feedback in the active bar */
+  function showVerifyFeedback(state, errorCount) {
+    var bar = state.activeBarEl;
+    if (!bar) return;
+    var label = bar.querySelector('.cw-active-label');
+    var clueEl = bar.querySelector('.cw-active-clue');
+    var hint = bar.querySelector('.cw-active-hint');
+    if (label) label.textContent = errorCount === 1 ? '1 errore' : errorCount + ' errori';
+    if (clueEl) clueEl.textContent = 'correggi e riprova';
+    if (hint) hint.style.display = 'none';
+    bar.classList.add('cw-active-bar--error');
+    if (state._verifyTimer) clearTimeout(state._verifyTimer);
+    state._verifyTimer = setTimeout(function () {
+      bar.classList.remove('cw-active-bar--error');
+      state._verifyTimer = null;
+      renderActiveBar(state);
+    }, 4000);
+  }
+
   function manualCheck(state) {
     state.checked = true;
     renderCells(state);
-    checkComplete(state);
+    if (!checkComplete(state)) {
+      var errors = countErrors(state);
+      if (errors > 0) showVerifyFeedback(state, errors);
+    }
   }
 
   /* ── Success overlay ─────────────────────────────────────────────────────── */
@@ -384,21 +429,28 @@
 
   function buildActiveBar(state) {
     const bar = el('div', 'cw-active-bar');
-    bar.appendChild(el('span', 'cw-active-label'));
-    bar.appendChild(el('span', 'cw-active-sep', ' — '));
-    bar.appendChild(el('span', 'cw-active-clue'));
 
-    // Verify button — lives in the active bar, before the hint link
+    // Row 1: clue identity (number + separator + clue text)
+    const info = el('div', 'cw-active-info');
+    info.appendChild(el('span', 'cw-active-label'));
+    info.appendChild(el('span', 'cw-active-sep', ' — '));
+    info.appendChild(el('span', 'cw-active-clue'));
+    bar.appendChild(info);
+
+    // Row 2: action buttons
+    const actions = el('div', 'cw-active-actions');
+
     const verifyBtn = el('button', 'cw-btn-verify', 'Verifica');
-    bar.appendChild(verifyBtn);
     state.verifyBtn = verifyBtn;
+    actions.appendChild(verifyBtn);
 
-    // Article hint link
     const hint = el('a', 'cw-active-hint', 'Leggi l\'articolo ↗');
     hint.target = '_blank';
     hint.rel = 'noopener noreferrer';
     hint.style.display = 'none';
-    bar.appendChild(hint);
+    actions.appendChild(hint);
+
+    bar.appendChild(actions);
 
     state.activeBarEl = bar;
     return bar;
@@ -532,9 +584,16 @@
     var scrollEl = container.querySelector('.cw-grid-scroll');
     var w = scrollEl ? scrollEl.clientWidth  : container.clientWidth;
     var h = scrollEl ? scrollEl.clientHeight : Math.round(window.innerHeight * 0.75);
-    var byW  = Math.floor(w / cols);
-    var byH  = Math.floor(h / rows);
-    var size = Math.max(10, Math.min(44, byW, byH));
+    var isMobile = window.innerWidth <= 767;
+    var size;
+    if (isMobile) {
+      // Show ~62% of cols at landing — cells are larger, grid overflows and user pans
+      size = Math.max(24, Math.min(44, Math.floor(w / (cols * 0.62))));
+    } else {
+      var byW = Math.floor(w / cols);
+      var byH = Math.floor(h / rows);
+      size = Math.max(10, Math.min(44, byW, byH));
+    }
     container.style.setProperty('--cell', size + 'px');
   }
 
@@ -576,9 +635,22 @@
 
     // ── Game area ────────────────────────────────────────────────────────────
     const game = el('div', 'cw-game');
+
+    // Left: grid only
     const gridCol = el('div', 'cw-grid-col');
-    gridCol.append(buildGrid(state), buildActiveBar(state));
-    game.append(gridCol, buildClues(state));
+    gridCol.appendChild(buildGrid(state));
+
+    // [P2] Mobile hint — disappears on first cell interaction
+    const scrollHint = el('div', 'cw-scroll-hint', '↓ scorri per gli indizi');
+    state.scrollHint = scrollHint;
+    gridCol.appendChild(scrollHint);
+
+    // Right panel: active bar + clues
+    const panel = el('div', 'cw-panel');
+    panel.appendChild(buildActiveBar(state));
+    panel.appendChild(buildClues(state));
+
+    game.append(gridCol, panel);
 
     // ── Hidden input for mobile keyboard ─────────────────────────────────────
     const hiddenInput = el('input', 'cw-hidden-input');
@@ -597,8 +669,12 @@
     // Wire verify button (built inside buildActiveBar)
     state.verifyBtn.addEventListener('click', () => manualCheck(state));
 
-    // Responsive cell sizing
-    applyCellSize(container, puzzle.size.cols, puzzle.size.rows);
+    // Responsive cell sizing — double rAF ensures layout is fully settled
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        applyCellSize(container, puzzle.size.cols, puzzle.size.rows);
+      });
+    });
     const ro = new ResizeObserver(() => applyCellSize(container, puzzle.size.cols, puzzle.size.rows));
     ro.observe(container);
 

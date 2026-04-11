@@ -1,7 +1,7 @@
 /* ─── FDL Crossword Player — self-contained styles ───────────────────────── */
 /* Tokens are inlined so the player can be embedded independently            */
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Lora:wght@600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Jost:wght@400;500;600;700&family=Rufina:wght@400;700&display=swap');
 
 /* ── Tokens ────────────────────────────────────────────────────────────────── */
 :root {
@@ -19,8 +19,8 @@
   --cw-border:       #d4d4d4;
   --white:           #ffffff;
 
-  --font-serif: 'Lora', Georgia, serif;
-  --font-sans:  'Inter', system-ui, sans-serif;
+  --font-serif: 'Rufina', Georgia, serif;
+  --font-sans:  'Jost', system-ui, sans-serif;
 
   --cell: 40px; /* overridden by JS based on container width */
 }
@@ -37,6 +37,9 @@
   color: var(--cw-primary);
   background: var(--cw-bg);
   min-height: 100vh;
+  overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
 /* ── Header ────────────────────────────────────────────────────────────────── */
@@ -70,6 +73,25 @@
 
 .cw-header-actions { margin-left: auto; display: flex; gap: 8px; align-items: center; }
 
+@media (max-width: 767px) {
+  .cw-header {
+    padding: 10px 16px;
+  }
+
+  .cw-header-back {
+    font-size: 11px;
+  }
+
+  .cw-header-logo {
+    font-size: 16px;
+  }
+
+  .cw-btn--ghost {
+    font-size: 11px;
+    padding: 5px 10px;
+  }
+}
+
 /* ── Buttons ───────────────────────────────────────────────────────────────── */
 .cw-btn {
   display: inline-flex;
@@ -95,20 +117,25 @@
 /* ── Game layout ───────────────────────────────────────────────────────────── */
 .cw-game {
   display: grid;
-  grid-template-columns: auto 1fr;
-  gap: 24px;
-  padding: 24px;
-  max-width: 1400px;
-  margin: 0 auto;
-  align-items: start;
+  grid-template-columns: 1fr 1fr;
+  flex: 1;
+  overflow: hidden;
+  min-height: 0;
 }
 
-/* Switch to stacked when grid + min clue width won't fit */
 @media (max-width: 900px) {
   .cw-game {
     grid-template-columns: 1fr;
+    flex: none;
+    overflow: visible;
     padding: 12px;
     gap: 12px;
+  }
+}
+
+@media (max-width: 767px) {
+  .cw-root {
+    padding-bottom: 64px;
   }
 }
 
@@ -116,23 +143,53 @@
 .cw-grid-col {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  min-width: 0;
+  overflow: hidden;
+  background: var(--cw-primary);
+  padding: 28px;
+}
+
+@media (max-width: 900px) {
+  .cw-grid-col {
+    background: transparent;
+    padding: 0;
+    gap: 0;
+    overflow: visible;
+  }
 }
 
 /* ── Grid scroll wrapper ───────────────────────────────────────────────────── */
 .cw-grid-scroll {
   overflow: hidden;
   width: 100%;
-  height: 75vh;
+  flex: 1;
+  min-height: 0;
   position: relative;
-  border-radius: 8px;
-  box-shadow: 0 2px 12px rgba(19,30,46,.12);
-  touch-action: none;   /* all gestures handled by JS */
+  border-radius: 0;
+  touch-action: none;
   cursor: grab;
   user-select: none;
   -webkit-user-select: none;
 }
 .cw-grid-scroll:active { cursor: grabbing; }
+
+/* [P0] Desktop: center the crossword within the dark panel */
+@media (min-width: 901px) {
+  .cw-grid-scroll {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 767px) {
+  .cw-grid-scroll {
+    flex: none;
+    height: auto;
+    aspect-ratio: 4 / 3;  /* [P2] shorter than 1/1 → clue list visible below fold */
+    border-radius: 6px;
+  }
+}
 
 /* ── Grid ──────────────────────────────────────────────────────────────────── */
 .cw-grid {
@@ -151,7 +208,7 @@
   width:  var(--cell);
   height: var(--cell);
   border: 1px solid var(--cw-border);
-  border-radius: 3px;
+  border-radius: 0;
   position: relative;
   display: flex;
   align-items: center;
@@ -198,18 +255,87 @@
   pointer-events: none;
 }
 
+/* ── Right panel ───────────────────────────────────────────────────────────── */
+.cw-panel {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--white);
+  border-left: 1px solid var(--cw-border);
+}
+
+@media (max-width: 900px) {
+  .cw-panel {
+    overflow: visible;
+    border-left: none;
+    background: transparent;
+  }
+}
+
 /* ── Active clue bar ───────────────────────────────────────────────────────── */
 .cw-active-bar {
   background: var(--cw-primary);
   color: var(--white);
-  padding: 10px 14px;
-  border-radius: 8px;
+  padding: 12px 16px;
+  border-radius: 0;
   font-size: 13px;
   display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+/* Row 1: number + clue text */
+.cw-active-info {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  min-width: 0;
+}
+
+/* Row 2: action buttons */
+.cw-active-actions {
+  display: flex;
   align-items: center;
-  flex-wrap: wrap;
-  gap: 6px;
-  min-height: 44px;
+  gap: 8px;
+}
+
+@media (max-width: 767px) {
+  .cw-active-bar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    border-radius: 0;
+    padding: 10px 16px;
+    padding-bottom: calc(10px + env(safe-area-inset-bottom));
+    z-index: 50;
+    box-shadow: 0 -2px 12px rgba(19,30,46,.2);
+    /* On mobile: single row — info truncated, actions pinned right */
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .cw-active-info {
+    flex: 1;
+    overflow: hidden;
+  }
+
+  .cw-active-clue {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .cw-active-actions {
+    flex-shrink: 0;
+  }
+}
+
+/* [P1] Verify error feedback state */
+.cw-active-bar--error .cw-active-label {
+  color: #ff8a80; /* warm light red — readable on dark nav background */
 }
 
 .cw-active-label {
@@ -218,7 +344,7 @@
   white-space: nowrap;
 }
 
-.cw-active-sep { opacity: .5; }
+.cw-active-sep { opacity: .5; white-space: nowrap; }
 
 .cw-active-clue {
   flex: 1;
@@ -262,7 +388,45 @@
 .cw-clues {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 24px;
+  gap: 0;
+  flex: 1;
+  overflow-y: auto;
+  align-content: start;
+  padding: 0;
+  scrollbar-width: thin;
+}
+
+@media (max-width: 767px) {
+  .cw-clues { grid-template-columns: 1fr; gap: 12px; }
+
+  .cw-clue {
+    min-height: 44px;
+    padding: 10px 8px;
+    align-items: center;
+  }
+
+  .cw-clue-text {
+    font-size: 14px;
+    line-height: 1.45;
+  }
+
+  .cw-clues-col {
+    border-radius: 8px;
+    overflow: hidden;
+  }
+
+  .cw-clue-hint {
+    display: none; /* fonte badge hidden on mobile to avoid overflow */
+  }
+}
+
+@media (max-width: 900px) {
+  .cw-clues {
+    gap: 12px;
+    padding: 0;
+    overflow: visible;
+    flex: none;
+  }
 }
 
 @media (max-width: 500px) {
@@ -271,9 +435,21 @@
 
 .cw-clues-col {
   background: var(--white);
-  border-radius: 12px;
-  padding: 16px;
-  box-shadow: 0 1px 4px rgba(19,30,46,.08);
+  padding: 20px 20px;
+}
+
+.cw-clues-col + .cw-clues-col {
+  border-left: 1px solid var(--cw-border);
+}
+
+@media (max-width: 900px) {
+  .cw-clues-col {
+    border-radius: 12px;
+    box-shadow: 0 1px 4px rgba(19,30,46,.08);
+  }
+  .cw-clues-col + .cw-clues-col {
+    border-left: none;
+  }
 }
 
 .cw-clues-title {
@@ -283,7 +459,7 @@
   color: var(--cw-primary);
   margin-bottom: 10px;
   padding-bottom: 8px;
-  border-bottom: 2px solid var(--cw-bg-light);
+  border-bottom: 1px solid var(--cw-border);
 }
 
 .cw-clues-list {
@@ -291,13 +467,6 @@
   display: flex;
   flex-direction: column;
   gap: 2px;
-  max-height: 480px;
-  overflow-y: auto;
-  scrollbar-width: thin;
-}
-
-@media (max-width: 900px) {
-  .cw-clues-list { max-height: none; }
 }
 
 /* ── Clue item ─────────────────────────────────────────────────────────────── */
@@ -313,7 +482,7 @@
 }
 
 .cw-clue:hover { background: var(--cw-bg); }
-.cw-clue--active { background: var(--cw-cyan-light) !important; }
+.cw-clue--active { background: var(--cw-cyan-light); }
 
 .cw-clue-num {
   font-weight: 700;
@@ -347,6 +516,30 @@
 
 .cw-clue-hint:hover { background: var(--cw-cyan-light); border-color: var(--cw-cyan); }
 
+/* ── [P2] Mobile scroll hint ───────────────────────────────────────────────── */
+.cw-scroll-hint {
+  display: none;
+}
+
+@media (max-width: 767px) {
+  .cw-scroll-hint {
+    display: block;
+    text-align: center;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: .5px;
+    text-transform: uppercase;
+    color: var(--cw-gray);
+    padding: 6px 0 2px;
+    opacity: 1;
+    transition: opacity 300ms ease;
+  }
+  .cw-scroll-hint--hidden {
+    opacity: 0;
+    pointer-events: none;
+  }
+}
+
 /* ── Hidden input (mobile keyboard trigger) ────────────────────────────────── */
 .cw-hidden-input {
   position: fixed;
@@ -361,47 +554,82 @@
 .cw-success {
   position: fixed;
   inset: 0;
-  background: rgba(19,30,46,.7);
+  background: rgba(19,30,46,.72);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 100;
-  animation: fadeIn .3s ease;
+  animation: successFadeIn .4s cubic-bezier(.16,1,.3,1);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
 }
 
-@keyframes fadeIn { from { opacity: 0 } to { opacity: 1 } }
+@keyframes successFadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
 
 .cw-success-card {
-  background: var(--white);
-  border-radius: 16px;
-  padding: 40px 48px;
+  background: var(--cw-bg);
+  border-radius: 4px;
+  padding: 48px 56px;
   text-align: center;
-  box-shadow: 0 8px 32px rgba(0,0,0,.2);
+  box-shadow: 0 24px 64px rgba(19,30,46,.36);
+  animation: successCardIn .5s cubic-bezier(.16,1,.3,1);
+  max-width: 440px;
+  width: 90%;
+}
+
+@keyframes successCardIn {
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.cw-success-card::before {
+  content: '✦';
+  display: block;
+  font-size: 22px;
+  color: var(--cw-cyan);
+  margin-bottom: 16px;
+  line-height: 1;
 }
 
 .cw-success-card h2 {
   font-family: var(--font-serif);
-  font-size: 28px;
+  font-size: 36px;
+  font-weight: 700;
   color: var(--cw-primary);
-  margin-bottom: 8px;
+  margin-bottom: 10px;
+  letter-spacing: -.3px;
 }
 
 .cw-success-card p {
   color: var(--cw-gray);
-  font-size: 15px;
-  margin-bottom: 20px;
+  font-size: 14px;
+  line-height: 1.6;
+  margin-bottom: 28px;
+  max-width: 28ch;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .cw-success-close {
-  background: var(--cw-blue);
+  background: var(--cw-primary);
   color: var(--white);
   border: none;
-  border-radius: 8px;
-  padding: 10px 24px;
+  border-radius: 3px;
+  padding: 12px 32px;
   font-family: var(--font-sans);
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
+  letter-spacing: .3px;
   cursor: pointer;
+  transition: background 140ms ease;
 }
 
 .cw-success-close:hover { background: var(--cw-blue-hover); }
+
+@media (prefers-reduced-motion: reduce) {
+  .cw-success, .cw-success-card { animation: none; }
+  .cw-cell { transition: none; }
+}
