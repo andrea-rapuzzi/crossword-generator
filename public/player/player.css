@@ -244,6 +244,24 @@
 .cw-cell--wrong .cw-letter { color: var(--white); }
 .cw-cell--selected .cw-num { color: var(--cw-blue-hover); }
 
+/* Auto-verify animations */
+@keyframes cw-flash-correct {
+  0%   { background: var(--cw-cyan); }
+  100% { background: var(--cw-sage); }
+}
+@keyframes cw-flash-wrong {
+  0%, 55% { background: var(--cw-red); }
+  100%     { background: var(--white); }
+}
+
+.cw-cell--auto-correct {
+  animation: cw-flash-correct 450ms ease-out forwards;
+}
+.cw-cell--flash-wrong {
+  animation: cw-flash-wrong 700ms ease-out forwards;
+}
+.cw-cell--flash-wrong .cw-letter { color: var(--white); }
+
 /* ── Cell number ───────────────────────────────────────────────────────────── */
 .cw-num {
   position: absolute;
