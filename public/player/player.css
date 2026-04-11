@@ -121,7 +121,16 @@
   flex: 1;
   overflow: hidden;
   min-height: 0;
-  gap: 1px; /* hairline separator between columns */
+  gap: 0;
+}
+
+/* Desktop: floating card layout — panels breathe inside the sandy background */
+@media (min-width: 901px) {
+  .cw-game {
+    padding: 20px 28px 28px;
+    gap: 20px;
+    background: var(--cw-bg);
+  }
 }
 
 @media (max-width: 900px) {
@@ -144,6 +153,12 @@
   overflow: hidden;
   background: var(--cw-primary);
   padding: 36px 40px;
+}
+
+@media (min-width: 901px) {
+  .cw-grid-col {
+    border-radius: 12px;
+  }
 }
 
 @media (max-width: 900px) {
@@ -258,13 +273,19 @@
   flex-direction: column;
   overflow: hidden;
   background: var(--white);
-  border-left: 1px solid var(--cw-border);
+  border-left: none;
+}
+
+@media (min-width: 901px) {
+  .cw-panel {
+    border-radius: 12px;
+    box-shadow: 0 1px 4px rgba(19,30,46,.08);
+  }
 }
 
 @media (max-width: 900px) {
   .cw-panel {
     overflow: visible;
-    border-left: none;
     background: transparent;
     gap: 12px; /* matches cw-game gap on mobile */
   }
@@ -280,6 +301,12 @@
   flex-direction: column;
   gap: 10px;
   flex-shrink: 0;
+}
+
+@media (min-width: 901px) {
+  .cw-active-bar {
+    border-radius: 12px 12px 0 0; /* follow the panel card radius */
+  }
 }
 
 @media (max-width: 767px) {
