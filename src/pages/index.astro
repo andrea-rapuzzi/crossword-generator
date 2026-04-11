@@ -104,8 +104,19 @@ export const prerender = false;
           <span class="card__title">Parole estratte</span>
           <div style="display:flex;align-items:center;gap:var(--space-3)">
             <span id="word-count" class="badge badge--blue" style="display:none"></span>
+            <button id="btn-add-word" class="btn btn--secondary btn--sm">+ Aggiungi</button>
             <button id="btn-clear-words" class="btn btn--secondary btn--sm" style="display:none">Svuota</button>
           </div>
+        </div>
+
+        <!-- Add word inline form -->
+        <div id="add-word-form" class="add-word-form" style="display:none">
+          <input id="add-answer" type="text"  class="input add-word-form__answer" placeholder="PAROLA" />
+          <input id="add-clue"   type="text"  class="input" placeholder="Indizio…" style="flex:1" />
+          <input id="add-hint"   type="text"  class="input" placeholder="Suggerimento…" style="flex:1" />
+          <input id="add-url"    type="url"   class="input add-word-form__url" placeholder="https://… (opzionale)" />
+          <button id="btn-add-word-ok"     class="btn btn--primary btn--sm">Aggiungi</button>
+          <button id="btn-add-word-cancel" class="btn btn--secondary btn--sm">Annulla</button>
         </div>
 
         <div id="words-empty" style="padding:var(--space-8) 0; text-align:center; color:var(--neutral-300); font-size:13px;">
@@ -115,6 +126,7 @@ export const prerender = false;
         <table id="words-table" class="words-table" style="display:none">
           <thead>
             <tr>
+              <th class="col-priority" title="Priorità">★</th>
               <th>Parola</th>
               <th>Indizio</th>
               <th>Suggerimento</th>

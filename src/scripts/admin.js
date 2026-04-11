@@ -20,7 +20,15 @@ const wordsEmpty    = document.getElementById('words-empty');
 const wordsTable    = document.getElementById('words-table');
 const wordsBody     = document.getElementById('words-body');
 const wordCount     = document.getElementById('word-count');
-const btnClearWords = document.getElementById('btn-clear-words');
+const btnClearWords  = document.getElementById('btn-clear-words');
+const btnAddWord     = document.getElementById('btn-add-word');
+const addWordForm    = document.getElementById('add-word-form');
+const addAnswerInput = document.getElementById('add-answer');
+const addClueInput   = document.getElementById('add-clue');
+const addHintInput   = document.getElementById('add-hint');
+const btnAddWordOk   = document.getElementById('btn-add-word-ok');
+const btnAddWordCancel = document.getElementById('btn-add-word-cancel');
+const addUrlInput      = document.getElementById('add-url');
 const btnPreview    = document.getElementById('btn-preview');
 const statusIcon    = document.getElementById('status-icon');
 const statusLabel   = document.getElementById('status-label');
@@ -143,21 +151,71 @@ function renderWords() {
 
   state.words.forEach((w, i) => {
     const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td><span class="word-answer">${w.answer}</span></td>
-      <td class="word-clue">${w.clue}</td>
-      <td class="word-hint">${w.hint || '—'}</td>
-      <td>${w.sourceUrl ? `<a href="${w.sourceUrl}" target="_blank" rel="noopener" class="word-source" title="${w.sourceUrl}">↗</a>` : '—'}</td>
-      <td><button class="word-del" data-i="${i}" title="Rimuovi">×</button></td>
-    `;
-    wordsBody.appendChild(tr);
-  });
+    if (w.priority) tr.classList.add('word-priority-row');
 
-  wordsBody.querySelectorAll('.word-del').forEach(btn => {
-    btn.addEventListener('click', () => {
-      state.words.splice(Number(btn.dataset.i), 1);
+    // ★ Priority
+    const tdStar = document.createElement('td');
+    tdStar.style.textAlign = 'center';
+    const starBtn = document.createElement('button');
+    starBtn.className = `word-priority${w.priority ? ' word-priority--active' : ''}`;
+    starBtn.title = w.priority ? 'Rimuovi priorità' : 'Segna come prioritaria';
+    starBtn.textContent = w.priority ? '★' : '☆';
+    starBtn.addEventListener('click', () => {
+      state.words[i].priority = !state.words[i].priority;
       renderWords();
     });
+    tdStar.appendChild(starBtn);
+
+    // Parola
+    const tdAnswer = document.createElement('td');
+    const answerSpan = document.createElement('span');
+    answerSpan.className = 'word-answer';
+    answerSpan.textContent = w.answer;
+    tdAnswer.appendChild(answerSpan);
+
+    // Indizio (editable)
+    const tdClue = document.createElement('td');
+    tdClue.className = 'word-clue word-editable';
+    tdClue.contentEditable = 'true';
+    tdClue.textContent = w.clue;
+    tdClue.addEventListener('blur', () => { state.words[i].clue = tdClue.textContent.trim(); });
+
+    // Suggerimento (editable)
+    const tdHint = document.createElement('td');
+    tdHint.className = 'word-hint word-editable';
+    tdHint.contentEditable = 'true';
+    tdHint.textContent = w.hint || '';
+    tdHint.addEventListener('blur', () => { state.words[i].hint = tdHint.textContent.trim(); });
+
+    // Fonte
+    const tdSource = document.createElement('td');
+    if (w.sourceUrl) {
+      const a = document.createElement('a');
+      a.href = w.sourceUrl;
+      a.target = '_blank';
+      a.rel = 'noopener';
+      a.className = 'word-source';
+      a.title = w.sourceUrl;
+      a.textContent = '↗';
+      tdSource.appendChild(a);
+    } else {
+      tdSource.textContent = '—';
+    }
+
+    // Elimina
+    const tdDel = document.createElement('td');
+    const delBtn = document.createElement('button');
+    delBtn.className = 'word-del';
+    delBtn.title = 'Rimuovi';
+    delBtn.textContent = '×';
+    delBtn.addEventListener('click', () => {
+      state.words.splice(i, 1);
+      renderWords();
+    });
+    tdDel.appendChild(delBtn);
+
+    tr.append(tdStar, tdAnswer, tdClue, tdHint, tdSource, tdDel);
+    wordsBody.appendChild(tr);
   });
 }
 
@@ -165,6 +223,46 @@ btnClearWords.addEventListener('click', () => {
   state.words = [];
   renderWords();
 });
+
+// ─── Add word manually ────────────────────────────────────────────────────────
+
+function openAddWordForm() {
+  addWordForm.style.display = 'flex';
+  addAnswerInput.focus();
+}
+
+function closeAddWordForm() {
+  addWordForm.style.display = 'none';
+  addAnswerInput.value = '';
+  addClueInput.value   = '';
+  addHintInput.value   = '';
+  addUrlInput.value    = '';
+}
+
+function commitAddWord() {
+  const answer = addAnswerInput.value.trim().toUpperCase().replace(/\s+/g, '');
+  const clue   = addClueInput.value.trim();
+  if (!answer || !clue) { addAnswerInput.focus(); return; }
+  if (state.words.find(w => w.answer === answer)) {
+    log(`"${answer}" è già presente.`, 'error');
+    return;
+  }
+  const sourceUrl = addUrlInput.value.trim();
+  state.words.push({ answer, clue, hint: addHintInput.value.trim(), sourceUrl, priority: false });
+  renderWords();
+  closeAddWordForm();
+  log(`Parola aggiunta manualmente: ${answer}`, 'ok');
+}
+
+btnAddWord.addEventListener('click', () => {
+  addWordForm.style.display === 'none' ? openAddWordForm() : closeAddWordForm();
+});
+btnAddWordOk.addEventListener('click', commitAddWord);
+btnAddWordCancel.addEventListener('click', closeAddWordForm);
+addAnswerInput.addEventListener('keydown', e => { if (e.key === 'Enter') addClueInput.focus(); });
+addClueInput.addEventListener('keydown',   e => { if (e.key === 'Enter') addHintInput.focus(); });
+addHintInput.addEventListener('keydown',   e => { if (e.key === 'Enter') addUrlInput.focus(); });
+addUrlInput.addEventListener('keydown',    e => { if (e.key === 'Enter') commitAddWord(); });
 
 // ─── Scrape & Extract ─────────────────────────────────────────────────────────
 
@@ -250,7 +348,8 @@ btnGenerate.addEventListener('click', () => {
   setStatus('generating', 30);
   setTimeout(() => {
     try {
-      const input = state.words.slice(0, 15);
+      const sorted = [...state.words].sort((a, b) => (b.priority ? 1 : 0) - (a.priority ? 1 : 0));
+      const input = sorted.slice(0, 15);
       log(`Avvio engine con ${input.length} parole…`);
       setStatus('generating', 70);
 
