@@ -99,7 +99,7 @@
   gap: 6px;
   padding: 6px 14px;
   border: none;
-  border-radius: 6px;
+  border-radius: 4px;
   font-family: var(--font-sans);
   font-size: 13px;
   font-weight: 500;
@@ -151,20 +151,17 @@
   flex-direction: column;
   min-width: 0;
   overflow: hidden;
-  background: var(--cw-primary);
+  background: var(--cw-bg);
+  background-image: url('/player/pattern.svg');
+  background-size: cover;
+  background-position: center top;
+  background-repeat: no-repeat;
   padding: 36px 40px;
-}
-
-@media (min-width: 901px) {
-  .cw-grid-col {
-    border-radius: 12px;
-  }
 }
 
 @media (max-width: 900px) {
   .cw-grid-col {
-    background: transparent;
-    padding: 0;
+    padding: 16px 12px;
     gap: 0;
     overflow: visible;
   }
@@ -321,6 +318,15 @@
   flex-shrink: 0;
 }
 
+/* Progress counter */
+.cw-active-progress {
+  font-size: 12px;
+  font-weight: 500;
+  color: rgba(255,255,255,.6);
+  letter-spacing: .4px;
+  text-transform: uppercase;
+}
+
 @media (min-width: 901px) {
   .cw-active-bar {
     border-radius: 12px 12px 0 0; /* follow the panel card radius */
@@ -370,13 +376,13 @@
   margin-top: 2px;
 }
 
-/* ── Verify button — pill shape ────────────────────────────────────────────── */
+/* ── Verify button ──────────────────────────────────────────────────────────── */
 .cw-btn-verify {
   flex-shrink: 0;
   background: transparent;
   color: rgba(255,255,255,.8);
   border: 1px solid rgba(255,255,255,.28);
-  border-radius: 100px;
+  border-radius: 4px;
   font-family: var(--font-sans);
   font-size: 12px;
   font-weight: 600;
@@ -388,7 +394,7 @@
 .cw-btn-verify:hover { background: rgba(255,255,255,.1); color: var(--white); border-color: rgba(255,255,255,.5); }
 .cw-btn-verify--success { background: var(--cw-sage); color: var(--cw-blue-hover); border-color: var(--cw-sage); }
 
-/* ── Article hint link — pill shape ────────────────────────────────────────── */
+/* ── Article hint link ──────────────────────────────────────────────────────── */
 .cw-active-hint {
   color: var(--cw-cyan);
   text-decoration: none;
@@ -397,7 +403,7 @@
   font-size: 12px;
   padding: 5px 14px;
   border: 1px solid rgba(98,198,233,.35);
-  border-radius: 100px;
+  border-radius: 4px;
   transition: background 120ms ease;
   flex-shrink: 0;
 }
@@ -591,7 +597,7 @@
   content: '✦';
   display: block;
   font-size: 22px;
-  color: var(--cw-cyan);
+  color: var(--cw-primary);
   margin-bottom: 16px;
   line-height: 1;
 }
@@ -619,7 +625,7 @@
   background: var(--cw-primary);
   color: var(--white);
   border: none;
-  border-radius: 3px;
+  border-radius: 4px;
   padding: 12px 32px;
   font-family: var(--font-sans);
   font-size: 13px;
