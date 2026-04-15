@@ -100,13 +100,59 @@
 
   /* ── Input ───────────────────────────────────────────────────────────────── */
 
+  function wordKey(num, dir) { return num + ':' + dir; }
+
+  function isWordFilled(state, clue, dir) {
+    return getWordCells(clue, dir).every(({ r, c }) => !!state.userGrid[r][c]);
+  }
+
+  function autoCheckWord(state, clue, dir, key) {
+    const cells = getWordCells(clue, dir);
+    const typed  = cells.map(({ r, c }) => state.userGrid[r][c] || '').join('');
+    const answer = clue.answer.toUpperCase();
+
+    if (typed === answer) {
+      state.wordCorrect.add(key);
+      renderCells(state);
+      // Brief cyan→green flash to signal success
+      cells.forEach(({ r, c }) => {
+        const div = state.cells[cellKey(r, c)];
+        if (div) {
+          div.classList.add('cw-cell--auto-correct');
+          setTimeout(() => div.classList.remove('cw-cell--auto-correct'), 500);
+        }
+      });
+    } else {
+      // Brief red flash to signal the word is wrong — don't block navigation
+      cells.forEach(({ r, c }) => {
+        const div = state.cells[cellKey(r, c)];
+        if (div) {
+          div.classList.add('cw-cell--flash-wrong');
+          setTimeout(() => div.classList.remove('cw-cell--flash-wrong'), 700);
+        }
+      });
+    }
+  }
+
   function inputLetter(state, ch) {
     if (!state.sel) return;
-    const { r, c } = state.sel;
+    const { r, c, clueNumber, dir } = state.sel;
+
+    // If re-editing a previously auto-verified word, un-verify it
+    const key = wordKey(clueNumber, dir);
+    if (state.wordCorrect.has(key)) state.wordCorrect.delete(key);
+
     state.userGrid[r][c] = ch;
     state.checked = false;
     renderCells(state);
     advance(state);
+
+    // Auto-check: did we just complete this word?
+    const clue = getClue(state.puzzle, clueNumber, dir);
+    if (clue && isWordFilled(state, clue, dir) && !state.wordCorrect.has(key)) {
+      autoCheckWord(state, clue, dir, key);
+    }
+
     checkComplete(state);
   }
 
@@ -207,7 +253,18 @@
   }
 
   function renderCells(state) {
-    const { puzzle, userGrid, sel, cells, checked } = state;
+    const { puzzle, userGrid, sel, cells, checked, wordCorrect } = state;
+
+    // Build set of cells belonging to auto-verified correct words
+    const autoCorrectCells = new Set();
+    if (wordCorrect && wordCorrect.size > 0) {
+      for (const k of wordCorrect) {
+        const [numStr, d] = k.split(':');
+        const clue = getClue(puzzle, +numStr, d);
+        if (clue) getWordCells(clue, d).forEach(({ r, c }) => autoCorrectCells.add(cellKey(r, c)));
+      }
+    }
+
     const wordSet = new Set();
     if (sel) {
       const clue = getClue(puzzle, sel.clueNumber, sel.dir);
@@ -225,14 +282,18 @@
 
         const isSelected = sel && sel.r === r && sel.c === c;
         const inWord = wordSet.has(cellKey(r, c)) && !isSelected;
+        const isAutoCorrect = autoCorrectCells.has(cellKey(r, c));
 
         div.classList.toggle('cw-cell--selected', !!isSelected);
-        div.classList.toggle('cw-cell--in-word', inWord);
+        div.classList.toggle('cw-cell--in-word', inWord && !isAutoCorrect);
 
         if (checked && userGrid[r][c]) {
           const ok = userGrid[r][c] === cell.letter;
           div.classList.toggle('cw-cell--correct', ok);
           div.classList.toggle('cw-cell--wrong', !ok);
+        } else if (isAutoCorrect) {
+          div.classList.add('cw-cell--correct');
+          div.classList.remove('cw-cell--wrong');
         } else {
           div.classList.remove('cw-cell--correct', 'cw-cell--wrong');
         }
@@ -471,15 +532,6 @@
         item.appendChild(el('span', 'cw-clue-num', w.number + '.'));
         item.appendChild(el('span', 'cw-clue-text', w.clue));
 
-        if (w.sourceUrl) {
-          const link = el('a', 'cw-clue-hint', 'fonte');
-          link.href = w.sourceUrl;
-          link.target = '_blank';
-          link.rel = 'noopener noreferrer';
-          link.title = w.hint || 'Apri articolo';
-          item.appendChild(link);
-        }
-
         item.addEventListener('click', (e) => {
           if (e.target.tagName === 'A') return;
           selectByClue(state, w.number, dir, true);
@@ -614,6 +666,7 @@
       verifyBtn: null,
       hiddenInput: null,
       checked: false,
+      wordCorrect: new Set(), // keys "number:dir" of auto-verified correct words
       container,
     };
 

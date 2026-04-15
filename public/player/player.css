@@ -121,6 +121,16 @@
   flex: 1;
   overflow: hidden;
   min-height: 0;
+  gap: 0;
+}
+
+/* Desktop: floating card layout — panels breathe inside the sandy background */
+@media (min-width: 901px) {
+  .cw-game {
+    padding: 20px 28px 28px;
+    gap: 20px;
+    background: var(--cw-bg);
+  }
 }
 
 @media (max-width: 900px) {
@@ -133,11 +143,7 @@
   }
 }
 
-@media (max-width: 767px) {
-  .cw-root {
-    padding-bottom: 64px;
-  }
-}
+/* mobile: no padding-bottom needed — active bar is in-flow, not fixed */
 
 /* ── Grid column ───────────────────────────────────────────────────────────── */
 .cw-grid-col {
@@ -146,7 +152,13 @@
   min-width: 0;
   overflow: hidden;
   background: var(--cw-primary);
-  padding: 28px;
+  padding: 36px 40px;
+}
+
+@media (min-width: 901px) {
+  .cw-grid-col {
+    border-radius: 12px;
+  }
 }
 
 @media (max-width: 900px) {
@@ -186,7 +198,7 @@
   .cw-grid-scroll {
     flex: none;
     height: auto;
-    aspect-ratio: 4 / 3;  /* [P2] shorter than 1/1 → clue list visible below fold */
+    aspect-ratio: 1 / 1;  /* square grid on mobile */
     border-radius: 6px;
   }
 }
@@ -232,6 +244,24 @@
 .cw-cell--wrong .cw-letter { color: var(--white); }
 .cw-cell--selected .cw-num { color: var(--cw-blue-hover); }
 
+/* Auto-verify animations */
+@keyframes cw-flash-correct {
+  0%   { background: var(--cw-cyan); }
+  100% { background: var(--cw-sage); }
+}
+@keyframes cw-flash-wrong {
+  0%, 55% { background: var(--cw-red); }
+  100%     { background: var(--white); }
+}
+
+.cw-cell--auto-correct {
+  animation: cw-flash-correct 450ms ease-out forwards;
+}
+.cw-cell--flash-wrong {
+  animation: cw-flash-wrong 700ms ease-out forwards;
+}
+.cw-cell--flash-wrong .cw-letter { color: var(--white); }
+
 /* ── Cell number ───────────────────────────────────────────────────────────── */
 .cw-num {
   position: absolute;
@@ -261,14 +291,21 @@
   flex-direction: column;
   overflow: hidden;
   background: var(--white);
-  border-left: 1px solid var(--cw-border);
+  border-left: none;
+}
+
+@media (min-width: 901px) {
+  .cw-panel {
+    border-radius: 12px;
+    box-shadow: 0 1px 4px rgba(19,30,46,.08);
+  }
 }
 
 @media (max-width: 900px) {
   .cw-panel {
     overflow: visible;
-    border-left: none;
     background: transparent;
+    gap: 12px; /* matches cw-game gap on mobile */
   }
 }
 
@@ -276,92 +313,74 @@
 .cw-active-bar {
   background: var(--cw-primary);
   color: var(--white);
-  padding: 12px 16px;
+  padding: 20px 28px;
   border-radius: 0;
-  font-size: 13px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
   flex-shrink: 0;
 }
 
-/* Row 1: number + clue text */
-.cw-active-info {
-  display: flex;
-  align-items: baseline;
-  gap: 4px;
-  min-width: 0;
-}
-
-/* Row 2: action buttons */
-.cw-active-actions {
-  display: flex;
-  align-items: center;
-  gap: 8px;
+@media (min-width: 901px) {
+  .cw-active-bar {
+    border-radius: 12px 12px 0 0; /* follow the panel card radius */
+  }
 }
 
 @media (max-width: 767px) {
   .cw-active-bar {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    border-radius: 0;
-    padding: 10px 16px;
-    padding-bottom: calc(10px + env(safe-area-inset-bottom));
-    z-index: 50;
-    box-shadow: 0 -2px 12px rgba(19,30,46,.2);
-    /* On mobile: single row — info truncated, actions pinned right */
-    flex-direction: row;
-    align-items: center;
-    gap: 8px;
-  }
-
-  .cw-active-info {
-    flex: 1;
-    overflow: hidden;
-  }
-
-  .cw-active-clue {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  .cw-active-actions {
-    flex-shrink: 0;
+    border-radius: 10px;
+    padding: 14px 18px;
   }
 }
 
 /* [P1] Verify error feedback state */
 .cw-active-bar--error .cw-active-label {
-  color: #ff8a80; /* warm light red — readable on dark nav background */
+  color: #ff8a80;
 }
 
+/* Row 1: number + direction label — small uppercase category */
 .cw-active-label {
-  font-weight: 700;
-  color: var(--cw-cyan);
+  display: block;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .8px;
+  color: rgba(98,198,233,.75);
   white-space: nowrap;
 }
 
-.cw-active-sep { opacity: .5; white-space: nowrap; }
+/* hidden — separator replaced by vertical stacking */
+.cw-active-sep { display: none; }
 
+/* Row 2: clue text — the main content, larger and prominent */
 .cw-active-clue {
-  flex: 1;
+  display: block;
+  font-size: 15px;
+  line-height: 1.4;
+  color: var(--white);
   min-width: 0;
 }
 
-/* ── Verify button (inside active bar) ─────────────────────────────────────── */
+/* Row 3: action buttons */
+.cw-active-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 2px;
+}
+
+/* ── Verify button — pill shape ────────────────────────────────────────────── */
 .cw-btn-verify {
   flex-shrink: 0;
   background: transparent;
-  color: rgba(255,255,255,.75);
-  border: 1px solid rgba(255,255,255,.25);
-  border-radius: 5px;
+  color: rgba(255,255,255,.8);
+  border: 1px solid rgba(255,255,255,.28);
+  border-radius: 100px;
   font-family: var(--font-sans);
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
-  padding: 3px 10px;
+  padding: 5px 14px;
   cursor: pointer;
   transition: background 120ms ease, color 120ms ease, border-color 120ms ease;
   white-space: nowrap;
@@ -369,19 +388,19 @@
 .cw-btn-verify:hover { background: rgba(255,255,255,.1); color: var(--white); border-color: rgba(255,255,255,.5); }
 .cw-btn-verify--success { background: var(--cw-sage); color: var(--cw-blue-hover); border-color: var(--cw-sage); }
 
+/* ── Article hint link — pill shape ────────────────────────────────────────── */
 .cw-active-hint {
   color: var(--cw-cyan);
   text-decoration: none;
   white-space: nowrap;
   font-weight: 500;
   font-size: 12px;
-  padding: 3px 8px;
-  border: 1px solid rgba(98,198,233,.4);
-  border-radius: 5px;
+  padding: 5px 14px;
+  border: 1px solid rgba(98,198,233,.35);
+  border-radius: 100px;
   transition: background 120ms ease;
   flex-shrink: 0;
 }
-
 .cw-active-hint:hover { background: rgba(98,198,233,.15); }
 
 /* ── Clues section ─────────────────────────────────────────────────────────── */
@@ -435,7 +454,7 @@
 
 .cw-clues-col {
   background: var(--white);
-  padding: 20px 20px;
+  padding: 24px 28px;
 }
 
 .cw-clues-col + .cw-clues-col {
@@ -521,24 +540,7 @@
   display: none;
 }
 
-@media (max-width: 767px) {
-  .cw-scroll-hint {
-    display: block;
-    text-align: center;
-    font-size: 11px;
-    font-weight: 500;
-    letter-spacing: .5px;
-    text-transform: uppercase;
-    color: var(--cw-gray);
-    padding: 6px 0 2px;
-    opacity: 1;
-    transition: opacity 300ms ease;
-  }
-  .cw-scroll-hint--hidden {
-    opacity: 0;
-    pointer-events: none;
-  }
-}
+/* scroll hint hidden — active bar is now in-flow so no affordance needed */
 
 /* ── Hidden input (mobile keyboard trigger) ────────────────────────────────── */
 .cw-hidden-input {
