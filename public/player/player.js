@@ -1,7 +1,7 @@
 /* ─── FDL Crossword Player ────────────────────────────────────────────────── */
 /* Vanilla JS, no dependencies. Embed via:                                    */
-/*   <script src="player.js"></script>                                         */
-/*   <script>FDLCrossword.init(el, puzzleData)</script>                        */
+/*   <script src="player.js"><\/script>                                         */
+/*   <script>FDLCrossword.init(el, puzzleData)<\/script>                        */
 
 (function () {
   'use strict';
@@ -317,6 +317,13 @@
     const bar = state.activeBarEl;
     if (!bar || !state.sel) return;
 
+    // [P2] Update progress counter
+    const totalWords = state.puzzle.across.length + state.puzzle.down.length;
+    const completedWords = state.wordCorrect.size;
+    if (state.progressEl) {
+      state.progressEl.textContent = completedWords + ' / ' + totalWords + ' parole';
+    }
+
     // [P1] Clear verify error state when user moves to a new clue
     if (bar.classList.contains('cw-active-bar--error')) {
       bar.classList.remove('cw-active-bar--error');
@@ -419,10 +426,13 @@
 
   async function generateEmbed(puzzle) {
     try {
-      const [css, js] = await Promise.all([
+      const [css, js, svgRaw] = await Promise.all([
         fetch('/player/player.css').then(r => r.text()),
         fetch('/player/player.js').then(r => r.text()),
+        fetch('/player/pattern.svg').then(r => r.text()),
       ]);
+      const svgB64 = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgRaw)));
+      const inlinedCss = css.replace("url('/player/pattern.svg')", "url('" + svgB64 + "')");
 
       const html = [
         '<!DOCTYPE html>',
@@ -431,7 +441,7 @@
         '  <meta charset="UTF-8">',
         '  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">',
         '  <title>FDL Crossword</title>',
-        '  <style>' + css + '</style>',
+        '  <style>' + inlinedCss + '</style>',
         '</head>',
         '<body>',
         '  <div id="cw"></div>',
@@ -490,6 +500,12 @@
 
   function buildActiveBar(state) {
     const bar = el('div', 'cw-active-bar');
+
+    // Progress counter
+    const progress = el('div', 'cw-active-progress');
+    progress.innerHTML = '<span class="cw-progress-text"></span>';
+    state.progressEl = progress.querySelector('.cw-progress-text');
+    bar.appendChild(progress);
 
     // Row 1: clue identity (number + separator + clue text)
     const info = el('div', 'cw-active-info');
