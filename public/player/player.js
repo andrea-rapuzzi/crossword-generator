@@ -448,7 +448,7 @@
         '  <script>' + js + '<\/script>',
         '  <script>',
         '    window.__CROSSWORD__ = ' + JSON.stringify(puzzle) + ';',
-        '    FDLCrossword.init(document.getElementById(\'cw\'), window.__CROSSWORD__);',
+        '    FDLCrossword.init(document.getElementById(\'cw\'), window.__CROSSWORD__, { embed: true });',
         '  <\/script>',
         '</body>',
         '</html>',
@@ -564,8 +564,46 @@
     return section;
   }
 
+  /* ── Custom QWERTY keyboard (mobile) ────────────────────────────────────── */
+
+  function buildKeyboard(state) {
+    var rows = [
+      ['Q','W','E','R','T','Y','U','I','O','P'],
+      ['A','S','D','F','G','H','J','K','L'],
+      ['Z','X','C','V','B','N','M','⌫'],
+    ];
+
+    var kb = el('div', 'cw-keyboard');
+
+    rows.forEach(function (letters) {
+      var row = el('div', 'cw-kb-row');
+      letters.forEach(function (letter) {
+        var isBS = letter === '⌫';
+        var key = el('button', 'cw-kb-key' + (isBS ? ' cw-kb-key--backspace' : ''), letter);
+        key.setAttribute('type', 'button');
+        key.addEventListener('touchstart', function (e) {
+          e.preventDefault(); // prevent focus loss from hidden input
+          if (isBS) backspace(state);
+          else inputLetter(state, letter);
+        }, { passive: false });
+        row.appendChild(key);
+      });
+      kb.appendChild(row);
+    });
+
+    return kb;
+  }
+
   function focusHidden(state) {
-    state.hiddenInput?.focus({ preventScroll: true });
+    if (!state.hiddenInput) return;
+    var isMobile = window.innerWidth <= 767;
+    // On mobile use custom keyboard — suppress native keyboard
+    state.hiddenInput.setAttribute('inputmode', isMobile ? 'none' : 'text');
+    state.hiddenInput.focus({ preventScroll: true });
+    if (state.keyboardEl) {
+      state.keyboardEl.classList.toggle('cw-keyboard--visible', isMobile);
+      state.container.classList.toggle('cw-root--keyboard', isMobile);
+    }
   }
 
   /* ── Events ──────────────────────────────────────────────────────────────── */
@@ -598,6 +636,18 @@
     var moved = false;
     var MIN = 0.5, MAX = 4;
 
+    function clampPan() {
+      var naturalW = gridEl.offsetWidth;
+      var naturalH = gridEl.offsetHeight;
+      var scaledW = naturalW * scale;
+      var scaledH = naturalH * scale;
+      var cw = scrollEl.clientWidth;
+      var ch = scrollEl.clientHeight;
+      var margin = 60;
+      tx = Math.max(margin - scaledW, Math.min(cw - margin, tx));
+      ty = Math.max(margin - scaledH, Math.min(ch - margin, ty));
+    }
+
     function apply() {
       gridEl.style.transform = 'translate(' + tx + 'px,' + ty + 'px) scale(' + scale + ')';
     }
@@ -626,6 +676,7 @@
         if (Math.abs(dx) > 4 || Math.abs(dy) > 4) moved = true;
         tx = initTx + dx;
         ty = initTy + dy;
+        clampPan();
       } else if (ts.length >= 2 && t0.length >= 2) {
         moved = true;
         var d = ptDist(ts[0], ts[1]);
@@ -634,6 +685,7 @@
         tx = initMidX - ratio * (initMidX - initTx);
         ty = initMidY - ratio * (initMidY - initTy);
         scale = s;
+        clampPan();
       }
       apply();
     }, { passive: false });
@@ -667,7 +719,8 @@
 
   /* ── Init ────────────────────────────────────────────────────────────────── */
 
-  function init(container, puzzle) {
+  function init(container, puzzle, opts) {
+    opts = opts || {};
     container.innerHTML = '';
     container.className = 'cw-root';
 
@@ -681,26 +734,30 @@
       activeBarEl: null,
       verifyBtn: null,
       hiddenInput: null,
+      keyboardEl: null,
       checked: false,
       wordCorrect: new Set(), // keys "number:dir" of auto-verified correct words
       container,
     };
 
-    // ── Header ──────────────────────────────────────────────────────────────
-    const header = el('header', 'cw-header');
+    // ── Header (hidden in embed mode) ────────────────────────────────────────
+    if (!opts.embed) {
+      const header = el('header', 'cw-header');
 
-    const back = el('a', 'cw-header-back', '← Admin');
-    back.href = '/';
+      const back = el('a', 'cw-header-back', '← Admin');
+      back.href = '/';
 
-    const logo = el('div', 'cw-header-logo');
-    logo.innerHTML = 'FDL <span>Crossword</span>';
+      const logo = el('div', 'cw-header-logo');
+      logo.innerHTML = 'FDL <span>Crossword</span>';
 
-    const actions = el('div', 'cw-header-actions');
-    const downloadBtn = el('button', 'cw-btn cw-btn--ghost', 'Scarica embed');
-    downloadBtn.addEventListener('click', () => generateEmbed(puzzle));
-    actions.appendChild(downloadBtn);
+      const actions = el('div', 'cw-header-actions');
+      const downloadBtn = el('button', 'cw-btn cw-btn--ghost', 'Scarica embed');
+      downloadBtn.addEventListener('click', () => generateEmbed(puzzle));
+      actions.appendChild(downloadBtn);
 
-    header.append(back, logo, actions);
+      header.append(back, logo, actions);
+      container.appendChild(header);
+    }
 
     // ── Game area ────────────────────────────────────────────────────────────
     const game = el('div', 'cw-game');
@@ -731,7 +788,11 @@
     hiddenInput.setAttribute('inputmode', 'text');
     state.hiddenInput = hiddenInput;
 
-    container.append(header, game, hiddenInput);
+    // ── Custom keyboard (mobile only) ─────────────────────────────────────────
+    const keyboardEl = buildKeyboard(state);
+    state.keyboardEl = keyboardEl;
+
+    container.append(game, keyboardEl, hiddenInput);
 
     setupEvents(state);
 

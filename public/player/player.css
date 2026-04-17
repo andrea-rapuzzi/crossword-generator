@@ -637,6 +637,65 @@
 
 .cw-success-close:hover { background: var(--cw-blue-hover); }
 
+/* ── Custom QWERTY keyboard (mobile) ──────────────────────────────────────── */
+.cw-keyboard {
+  display: none;
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  background: #cbd0d8;
+  padding: 8px 4px calc(12px + env(safe-area-inset-bottom, 0px));
+  z-index: 200;
+  box-shadow: 0 -1px 0 rgba(0,0,0,.2);
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.cw-keyboard.cw-keyboard--visible { display: block; }
+
+.cw-kb-row {
+  display: flex;
+  justify-content: center;
+  gap: 5px;
+  margin-bottom: 8px;
+}
+
+.cw-kb-row:last-child { margin-bottom: 0; }
+
+.cw-kb-key {
+  flex: 0 0 auto;
+  width: clamp(26px, 9vw, 42px);
+  height: 44px;
+  border-radius: 5px;
+  background: var(--white);
+  border: none;
+  font-family: var(--font-sans);
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--cw-primary);
+  box-shadow: 0 1px 0 #888, 0 2px 0 rgba(0,0,0,.3);
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.cw-kb-key:active {
+  box-shadow: 0 0 0 #888;
+  transform: translateY(1px);
+  background: #e5e7eb;
+}
+
+.cw-kb-key--backspace {
+  width: clamp(40px, 13vw, 58px);
+  font-size: 17px;
+  background: #adb5bd;
+  color: var(--cw-primary);
+}
+
+.cw-kb-key--backspace:active { background: #9199a1; }
+
+/* Padding so clues aren't hidden behind the keyboard */
+.cw-root--keyboard { padding-bottom: 220px; }
+
 @media (prefers-reduced-motion: reduce) {
   .cw-success, .cw-success-card { animation: none; }
   .cw-cell { transition: none; }
