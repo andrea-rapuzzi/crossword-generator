@@ -100,59 +100,18 @@
 
   /* ── Input ───────────────────────────────────────────────────────────────── */
 
-  function wordKey(num, dir) { return num + ':' + dir; }
-
   function isWordFilled(state, clue, dir) {
     return getWordCells(clue, dir).every(({ r, c }) => !!state.userGrid[r][c]);
   }
 
-  function autoCheckWord(state, clue, dir, key) {
-    const cells = getWordCells(clue, dir);
-    const typed  = cells.map(({ r, c }) => state.userGrid[r][c] || '').join('');
-    const answer = clue.answer.toUpperCase();
-
-    if (typed === answer) {
-      state.wordCorrect.add(key);
-      renderCells(state);
-      // Brief cyan→green flash to signal success
-      cells.forEach(({ r, c }) => {
-        const div = state.cells[cellKey(r, c)];
-        if (div) {
-          div.classList.add('cw-cell--auto-correct');
-          setTimeout(() => div.classList.remove('cw-cell--auto-correct'), 500);
-        }
-      });
-    } else {
-      // Brief red flash to signal the word is wrong — don't block navigation
-      cells.forEach(({ r, c }) => {
-        const div = state.cells[cellKey(r, c)];
-        if (div) {
-          div.classList.add('cw-cell--flash-wrong');
-          setTimeout(() => div.classList.remove('cw-cell--flash-wrong'), 700);
-        }
-      });
-    }
-  }
-
   function inputLetter(state, ch) {
     if (!state.sel) return;
-    const { r, c, clueNumber, dir } = state.sel;
-
-    // If re-editing a previously auto-verified word, un-verify it
-    const key = wordKey(clueNumber, dir);
-    if (state.wordCorrect.has(key)) state.wordCorrect.delete(key);
+    const { r, c } = state.sel;
 
     state.userGrid[r][c] = ch;
     state.checked = false;
     renderCells(state);
     advance(state);
-
-    // Auto-check: did we just complete this word?
-    const clue = getClue(state.puzzle, clueNumber, dir);
-    if (clue && isWordFilled(state, clue, dir) && !state.wordCorrect.has(key)) {
-      autoCheckWord(state, clue, dir, key);
-    }
-
     checkComplete(state);
   }
 
@@ -253,17 +212,7 @@
   }
 
   function renderCells(state) {
-    const { puzzle, userGrid, sel, cells, checked, wordCorrect } = state;
-
-    // Build set of cells belonging to auto-verified correct words
-    const autoCorrectCells = new Set();
-    if (wordCorrect && wordCorrect.size > 0) {
-      for (const k of wordCorrect) {
-        const [numStr, d] = k.split(':');
-        const clue = getClue(puzzle, +numStr, d);
-        if (clue) getWordCells(clue, d).forEach(({ r, c }) => autoCorrectCells.add(cellKey(r, c)));
-      }
-    }
+    const { puzzle, userGrid, sel, cells, checked } = state;
 
     const wordSet = new Set();
     if (sel) {
@@ -282,18 +231,14 @@
 
         const isSelected = sel && sel.r === r && sel.c === c;
         const inWord = wordSet.has(cellKey(r, c)) && !isSelected;
-        const isAutoCorrect = autoCorrectCells.has(cellKey(r, c));
 
         div.classList.toggle('cw-cell--selected', !!isSelected);
-        div.classList.toggle('cw-cell--in-word', inWord && !isAutoCorrect);
+        div.classList.toggle('cw-cell--in-word', inWord);
 
         if (checked && userGrid[r][c]) {
           const ok = userGrid[r][c] === cell.letter;
           div.classList.toggle('cw-cell--correct', ok);
           div.classList.toggle('cw-cell--wrong', !ok);
-        } else if (isAutoCorrect) {
-          div.classList.add('cw-cell--correct');
-          div.classList.remove('cw-cell--wrong');
         } else {
           div.classList.remove('cw-cell--correct', 'cw-cell--wrong');
         }
@@ -317,11 +262,14 @@
     const bar = state.activeBarEl;
     if (!bar || !state.sel) return;
 
-    // [P2] Update progress counter
+    // Update progress counter — count words with all cells filled
     const totalWords = state.puzzle.across.length + state.puzzle.down.length;
-    const completedWords = state.wordCorrect.size;
+    const filledWords = [
+      ...state.puzzle.across.map(w => ({ ...w, dir: 'across' })),
+      ...state.puzzle.down.map(w => ({ ...w, dir: 'down' })),
+    ].filter(w => isWordFilled(state, w, w.dir)).length;
     if (state.progressEl) {
-      state.progressEl.textContent = completedWords + ' / ' + totalWords + ' parole';
+      state.progressEl.textContent = filledWords + ' / ' + totalWords + ' parole';
     }
 
     // [P1] Clear verify error state when user moves to a new clue
@@ -642,10 +590,12 @@
       var scaledW = naturalW * scale;
       var scaledH = naturalH * scale;
       var cw = scrollEl.clientWidth;
-      var ch = scrollEl.clientHeight;
-      var margin = 60;
-      tx = Math.max(margin - scaledW, Math.min(cw - margin, tx));
-      ty = Math.max(margin - scaledH, Math.min(ch - margin, ty));
+      var ch = scrollEl.clientHeight || cw; // fallback for aspect-ratio containers
+      // Keep at least 35% of the grid visible on each axis
+      var minVisX = Math.max(100, Math.round(scaledW * 0.35));
+      var minVisY = Math.max(100, Math.round(scaledH * 0.35));
+      tx = Math.max(minVisX - scaledW, Math.min(cw - minVisX, tx));
+      ty = Math.max(minVisY - scaledH, Math.min(ch - minVisY, ty));
     }
 
     function apply() {
@@ -736,7 +686,6 @@
       hiddenInput: null,
       keyboardEl: null,
       checked: false,
-      wordCorrect: new Set(), // keys "number:dir" of auto-verified correct words
       container,
     };
 

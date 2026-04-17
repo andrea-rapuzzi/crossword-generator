@@ -241,23 +241,6 @@
 .cw-cell--wrong .cw-letter { color: var(--white); }
 .cw-cell--selected .cw-num { color: var(--cw-blue-hover); }
 
-/* Auto-verify animations */
-@keyframes cw-flash-correct {
-  0%   { background: var(--cw-cyan); }
-  100% { background: var(--cw-sage); }
-}
-@keyframes cw-flash-wrong {
-  0%, 55% { background: var(--cw-red); }
-  100%     { background: var(--white); }
-}
-
-.cw-cell--auto-correct {
-  animation: cw-flash-correct 450ms ease-out forwards;
-}
-.cw-cell--flash-wrong {
-  animation: cw-flash-wrong 700ms ease-out forwards;
-}
-.cw-cell--flash-wrong .cw-letter { color: var(--white); }
 
 /* ── Cell number ───────────────────────────────────────────────────────────── */
 .cw-num {
@@ -642,10 +625,10 @@
   display: none;
   position: fixed;
   bottom: 0; left: 0; right: 0;
-  background: #cbd0d8;
-  padding: 8px 4px calc(12px + env(safe-area-inset-bottom, 0px));
+  background: var(--cw-primary);
+  padding: 10px 14px calc(16px + env(safe-area-inset-bottom, 0px));
   z-index: 200;
-  box-shadow: 0 -1px 0 rgba(0,0,0,.2);
+  box-shadow: 0 -1px 0 rgba(0,0,0,.35);
   user-select: none;
   -webkit-user-select: none;
 }
@@ -655,7 +638,7 @@
 .cw-kb-row {
   display: flex;
   justify-content: center;
-  gap: 5px;
+  gap: 6px;
   margin-bottom: 8px;
 }
 
@@ -663,35 +646,40 @@
 
 .cw-kb-key {
   flex: 0 0 auto;
-  width: clamp(26px, 9vw, 42px);
-  height: 44px;
-  border-radius: 5px;
-  background: var(--white);
-  border: none;
+  width: clamp(24px, 8vw, 40px);
+  height: 42px;
+  border-radius: 6px;
+  background: rgba(255,255,255,.16);
+  border: 1px solid rgba(255,255,255,.08);
   font-family: var(--font-sans);
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 600;
-  color: var(--cw-primary);
-  box-shadow: 0 1px 0 #888, 0 2px 0 rgba(0,0,0,.3);
+  color: var(--white);
+  box-shadow: none;
   cursor: pointer;
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
+  transition: background 80ms ease;
 }
 
 .cw-kb-key:active {
-  box-shadow: 0 0 0 #888;
-  transform: translateY(1px);
-  background: #e5e7eb;
+  background: var(--cw-cyan);
+  color: var(--cw-primary);
+  transform: none;
 }
 
 .cw-kb-key--backspace {
-  width: clamp(40px, 13vw, 58px);
-  font-size: 17px;
-  background: #adb5bd;
-  color: var(--cw-primary);
+  width: clamp(38px, 12vw, 54px);
+  font-size: 16px;
+  background: rgba(255,255,255,.08);
+  color: rgba(255,255,255,.65);
+  border-color: rgba(255,255,255,.05);
 }
 
-.cw-kb-key--backspace:active { background: #9199a1; }
+.cw-kb-key--backspace:active {
+  background: var(--cw-cyan);
+  color: var(--cw-primary);
+}
 
 /* Padding so clues aren't hidden behind the keyboard */
 .cw-root--keyboard { padding-bottom: 220px; }
