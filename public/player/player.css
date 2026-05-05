@@ -138,8 +138,7 @@
 .cw-grid {
   display: grid;
   grid-template-columns: repeat(var(--cols), var(--cell));
-  grid-template-rows:    repeat(var(--rows), var(--cell));
-  border: 2px solid var(--cw-primary);
+  grid-template-rows: repeat(var(--rows), var(--cell));
   transform-origin: 0 0;
   will-change: transform;
   user-select: none;
@@ -151,7 +150,7 @@
   width:  var(--cell);
   height: var(--cell);
   border: 1px solid var(--cw-border);
-  border-radius: 3px;
+  /* border-radius: 3px; */
   position: relative;
   display: flex;
   align-items: center;
